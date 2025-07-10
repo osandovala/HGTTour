@@ -28,10 +28,11 @@
     }
 
     body {
-      background-color: #f5f7fa;
+      background: linear-gradient(135deg, #3f72af, #dbe2ef);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       color: var(--color-text);
       padding: 20px;
+      min-height: 100vh;
     }
 
     .container {
@@ -39,12 +40,18 @@
       margin: 0 auto;
     }
 
-    h1 {
-      text-align: center;
-      color: var(--color-primary);
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 25px;
       padding-bottom: 15px;
       border-bottom: 2px solid var(--color-secondary);
+    }
+
+    h1 {
+      color: var(--color-primary);
+      font-size: 1.8rem;
     }
 
     .btn {
@@ -81,6 +88,18 @@
       transform: translateY(-2px);
     }
 
+    .btn-back {
+      background: #3f72af;
+      padding: 10px 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-back:hover {
+      background: #2c5282;
+    }
+
     .filters-container {
       display: flex;
       flex-wrap: wrap;
@@ -89,7 +108,7 @@
       background: white;
       padding: 15px;
       border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
       align-items: center;
     }
 
@@ -110,6 +129,7 @@
       border: 1px solid #ddd;
       border-radius: var(--border-radius);
       font-size: 0.9rem;
+      background: white;
     }
 
     .filter-actions {
@@ -131,7 +151,7 @@
       background: white;
       padding: 20px;
       border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
     }
 
     .chart-title {
@@ -154,18 +174,26 @@
       background: white;
       padding: 15px;
       border-radius: var(--border-radius);
-      box-shadow: var(--box-shadow);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
       margin: 20px 0;
       flex-wrap: wrap;
+      justify-content: center;
     }
 
     .stat-card {
       flex: 1;
       min-width: 150px;
+      max-width: 200px;
       text-align: center;
       padding: 15px;
       border-radius: var(--border-radius);
       background: var(--color-secondary);
+      transition: transform 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
     }
 
     .stat-value {
@@ -222,31 +250,57 @@
       font-style: italic;
       color: var(--color-accent);
     }
+
+    .chart-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .chart-row > .chart-wrapper {
+      flex: 1;
+      min-width: calc(50% - 20px);
+    }
+
+    @media (max-width: 768px) {
+      .chart-row > .chart-wrapper {
+        min-width: 100%;
+      }
+      
+      .filters-container {
+        flex-direction: column;
+      }
+      
+      .filter-actions {
+        margin-left: 0;
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .header-container {
+        flex-direction: column;
+        gap: 15px;
+      }
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Estadísticas de Mantenimientos</h1>
+    <div class="header-container">
+      <h1>Estadísticas de Mantenimientos</h1>
+      <button class="btn btn-back" onclick="window.location.href='menu.html'">
+        <i class="fas fa-arrow-left"></i> Volver al Menú
+      </button>
+    </div>
 
     <!-- Filtros por período de tiempo -->
     <div class="filters-container">
       <div class="filter-group">
-        <label for="filter-period" class="filter-label">Período:</label>
-        <select id="filter-period" class="filter-select" onchange="cambiarPeriodo()">
-          <option value="7">Últimos 7 días</option>
-          <option value="30" selected>Últimos 30 días</option>
-          <option value="90">Últimos 90 días</option>
-          <option value="365">Últimos 365 días</option>
-          <option value="custom">Personalizado</option>
-        </select>
-      </div>
-
-      <div class="filter-group" id="custom-date-group" style="display: none;">
         <label for="filter-start-date" class="filter-label">Fecha inicio:</label>
         <input type="date" id="filter-start-date" class="filter-input">
       </div>
 
-      <div class="filter-group" id="custom-date-group-end" style="display: none;">
+      <div class="filter-group">
         <label for="filter-end-date" class="filter-label">Fecha fin:</label>
         <input type="date" id="filter-end-date" class="filter-input">
       </div>
@@ -285,22 +339,32 @@
       </div>
     </div>
 
-    <!-- Gráfico 1: Correctivas vs Preventivas -->
-    <div class="chart-container">
+    <!-- Gráficos principales -->
+    <div class="chart-row">
+      <!-- Gráfico 1: Preventivos vs Correctivos -->
       <div class="chart-wrapper">
-        <div class="chart-title">Mantenimientos Preventivos vs Correctivos</div>
-        <div class="info-text">Cantidades y porcentajes de cada tipo</div>
+        <div class="chart-title">Preventivos vs Correctivos</div>
+        <div class="info-text">Distribución de tipos de mantenimientos</div>
         <div class="chart-canvas-container">
           <canvas id="tipo-chart"></canvas>
         </div>
       </div>
+
+      <!-- Gráfico 2: Mantenimientos por patente -->
+      <div class="chart-wrapper">
+        <div class="chart-title">Mantenimientos por Patente</div>
+        <div class="info-text">Cantidad de mantenimientos por vehículo</div>
+        <div class="chart-canvas-container">
+          <canvas id="patentes-chart"></canvas>
+        </div>
+      </div>
     </div>
 
-    <!-- Gráfico 2: Distribución detallada por tipos -->
+    <!-- Gráfico 3: Distribución detallada por tipos -->
     <div class="chart-container">
       <div class="chart-wrapper">
         <div class="chart-title">Distribución Detallada por Tipos</div>
-        <div class="info-text">Desglose de todos los subtipos encontrados</div>
+        <div class="info-text">Desglose de todos los tipos de mantenimientos</div>
         <div class="chart-canvas-container">
           <canvas id="tipos-detalle-chart"></canvas>
         </div>
@@ -322,6 +386,7 @@
 
     let tipoChart = null;
     let tiposDetalleChart = null;
+    let patentesChart = null;
     let mantenimientosData = [];
 
     // Mostrar mensaje de error
@@ -351,59 +416,6 @@
       document.getElementById('loading-message').style.display = mostrar ? 'block' : 'none';
     }
 
-    // Cambiar visibilidad de filtros personalizados
-    function cambiarPeriodo() {
-      const periodo = document.getElementById('filter-period').value;
-      const customGroup = document.getElementById('custom-date-group');
-      const customGroupEnd = document.getElementById('custom-date-group-end');
-      
-      if (periodo === 'custom') {
-        customGroup.style.display = 'flex';
-        customGroupEnd.style.display = 'flex';
-        
-        // Establecer fechas por defecto (últimos 30 días)
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - 30);
-        
-        document.getElementById('filter-start-date').value = startDate.toISOString().split('T')[0];
-        document.getElementById('filter-end-date').value = endDate.toISOString().split('T')[0];
-      } else {
-        customGroup.style.display = 'none';
-        customGroupEnd.style.display = 'none';
-      }
-    }
-
-    // Obtener fechas según el filtro seleccionado
-    function obtenerFechasFiltro() {
-      const periodo = document.getElementById('filter-period').value;
-      
-      if (periodo === 'custom') {
-        const startDate = document.getElementById('filter-start-date').value;
-        const endDate = document.getElementById('filter-end-date').value;
-        
-        if (!startDate || !endDate) {
-          mostrarError('Seleccione ambas fechas para el período personalizado');
-          return null;
-        }
-        
-        return {
-          start: new Date(startDate),
-          end: new Date(endDate)
-        };
-      }
-      
-      const dias = parseInt(periodo);
-      const endDate = new Date();
-      const startDate = new Date();
-      startDate.setDate(startDate.getDate() - dias);
-      
-      return {
-        start: startDate,
-        end: endDate
-      };
-    }
-
     // Formatear fecha para Supabase
     function formatDateForSupabase(date) {
       return date.toISOString().split('T')[0];
@@ -414,8 +426,21 @@
       try {
         mostrarCarga(true);
         
-        const fechas = obtenerFechasFiltro();
-        if (!fechas) return;
+        const startDateInput = document.getElementById('filter-start-date').value;
+        const endDateInput = document.getElementById('filter-end-date').value;
+        
+        if (!startDateInput || !endDateInput) {
+          mostrarError('Seleccione ambas fechas para el período');
+          return;
+        }
+        
+        const startDate = new Date(startDateInput);
+        const endDate = new Date(endDateInput);
+        
+        if (startDate > endDate) {
+          mostrarError('La fecha de inicio debe ser anterior a la fecha de fin');
+          return;
+        }
         
         let query = supabase
           .from('mantenimientos')
@@ -423,8 +448,8 @@
         
         // Aplicar filtro de fechas
         query = query
-          .gte('fecha', formatDateForSupabase(fechas.start))
-          .lte('fecha', formatDateForSupabase(fechas.end));
+          .gte('fecha', formatDateForSupabase(startDate))
+          .lte('fecha', formatDateForSupabase(endDate));
         
         const { data, error } = await query;
         
@@ -450,17 +475,21 @@
 
     // Limpiar filtros
     function limpiarFiltros() {
-      document.getElementById('filter-period').value = '30';
-      document.getElementById('custom-date-group').style.display = 'none';
-      document.getElementById('custom-date-group-end').style.display = 'none';
+      const today = new Date();
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(today.getMonth() - 1);
+      
+      document.getElementById('filter-start-date').value = oneMonthAgo.toISOString().split('T')[0];
+      document.getElementById('filter-end-date').value = today.toISOString().split('T')[0];
+      
       cargarDatos();
     }
 
     // Actualizar estadísticas
     function actualizarEstadisticas() {
       const total = mantenimientosData.length;
-      const preventivos = mantenimientosData.filter(m => m.tipo === 'preventivo').length;
-      const correctivos = mantenimientosData.filter(m => m.tipo === 'correctivo').length;
+      const preventivos = mantenimientosData.filter(m => m.tipo === 'Preventivo').length;
+      const correctivos = mantenimientosData.filter(m => m.tipo === 'Correctivo').length;
       
       const preventivoPercent = total > 0 ? Math.round((preventivos / total) * 100) : 0;
       const correctivoPercent = total > 0 ? Math.round((correctivos / total) * 100) : 0;
@@ -476,13 +505,14 @@
     function actualizarGraficos() {
       actualizarGraficoTipos();
       actualizarGraficoDetalleTipos();
+      actualizarGraficoPatentes();
     }
 
-    // Gráfico de Correctivos vs Preventivos
+    // Gráfico de Preventivos vs Correctivos
     function actualizarGraficoTipos() {
       const ctx = document.getElementById('tipo-chart').getContext('2d');
-      const preventivos = mantenimientosData.filter(m => m.tipo === 'preventivo').length;
-      const correctivos = mantenimientosData.filter(m => m.tipo === 'correctivo').length;
+      const preventivos = mantenimientosData.filter(m => m.tipo === 'Preventivo').length;
+      const correctivos = mantenimientosData.filter(m => m.tipo === 'Correctivo').length;
       const total = mantenimientosData.length;
       
       const preventivoPercent = total > 0 ? Math.round((preventivos / total) * 100) : 0;
@@ -493,12 +523,12 @@
         datasets: [{
           data: [preventivos, correctivos],
           backgroundColor: [
-            'rgba(46, 204, 113, 0.8)', // Verde para preventivos
-            'rgba(231, 76, 60, 0.8)'   // Rojo para correctivos
+            'rgba(63, 114, 175, 0.8)',  // Azul para preventivos
+            'rgba(219, 226, 239, 0.8)'  // Gris azulado para correctivos
           ],
           borderColor: [
-            'rgba(46, 204, 113, 1)',
-            'rgba(231, 76, 60, 1)'
+            'rgba(63, 114, 175, 1)',
+            'rgba(219, 226, 239, 1)'
           ],
           borderWidth: 1
         }]
@@ -527,7 +557,7 @@
               const percentage = Math.round((value / total) * 100);
               return `${value}\n(${percentage}%)`;
             },
-            color: '#fff',
+            color: '#112d4e',
             font: {
               weight: 'bold',
               size: 14
@@ -543,7 +573,7 @@
       
       // Crear nuevo gráfico con el plugin datalabels
       tipoChart = new Chart(ctx, {
-        type: 'bar',
+        type: 'pie',
         data: data,
         options: options,
         plugins: [ChartDataLabels]
@@ -554,7 +584,7 @@
     function actualizarGraficoDetalleTipos() {
       const ctx = document.getElementById('tipos-detalle-chart').getContext('2d');
       
-      // Agrupar por tipo de mantenimiento (incluyendo subtipos)
+      // Agrupar por tipo de mantenimiento
       const tiposMap = {};
       mantenimientosData.forEach(m => {
         if (!m.tipo) return;
@@ -632,12 +662,94 @@
       });
     }
 
+    // Gráfico de mantenimientos por patente
+    function actualizarGraficoPatentes() {
+      const ctx = document.getElementById('patentes-chart').getContext('2d');
+      
+      // Agrupar por patente
+      const patentesMap = {};
+      mantenimientosData.forEach(m => {
+        if (!m.patente) return;
+        if (!patentesMap[m.patente]) {
+          patentesMap[m.patente] = 0;
+        }
+        patentesMap[m.patente]++;
+      });
+      
+      // Ordenar por cantidad (mayor a menor)
+      const patentesOrdenadas = Object.keys(patentesMap).sort((a, b) => patentesMap[b] - patentesMap[a]);
+      
+      // Tomar las primeras 10 patentes para mostrar
+      const patentes = patentesOrdenadas.slice(0, 10);
+      const counts = patentes.map(patente => patentesMap[patente]);
+      
+      const data = {
+        labels: patentes,
+        datasets: [{
+          label: 'Mantenimientos',
+          data: counts,
+          backgroundColor: 'rgba(63, 114, 175, 0.8)',
+          borderColor: 'rgba(63, 114, 175, 1)',
+          borderWidth: 1
+        }]
+      };
+      
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `Mantenimientos: ${context.raw}`;
+              }
+            }
+          },
+          datalabels: {
+            anchor: 'end',
+            align: 'top',
+            color: '#112d4e',
+            font: {
+              weight: 'bold'
+            }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              precision: 0
+            }
+          }
+        }
+      };
+      
+      // Destruir gráfico anterior si existe
+      if (patentesChart) {
+        patentesChart.destroy();
+      }
+      
+      // Crear nuevo gráfico con el plugin datalabels
+      patentesChart = new Chart(ctx, {
+        type: 'bar',
+        data: data,
+        options: options,
+        plugins: [ChartDataLabels]
+      });
+    }
+
     // Inicializar la página
     document.addEventListener('DOMContentLoaded', () => {
-      // Configurar fecha máxima para los filtros
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('filter-end-date').max = today;
-      document.getElementById('filter-start-date').max = today;
+      // Configurar fechas por defecto (último mes)
+      const today = new Date();
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(today.getMonth() - 1);
+      
+      document.getElementById('filter-start-date').value = oneMonthAgo.toISOString().split('T')[0];
+      document.getElementById('filter-end-date').value = today.toISOString().split('T')[0];
       
       // Cargar datos iniciales
       cargarDatos();

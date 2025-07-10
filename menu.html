@@ -12,27 +12,30 @@
     }
     
     body {
-      background-color: #f5f7fa;
+      /* Updated background to match index.html */
+      background: linear-gradient(135deg, #3f72af, #dbe2ef);
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       margin: 0;
+      padding: 20px;
     }
     
     .menu-container {
       background: #fff;
       padding: 2rem;
       border-radius: 8px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      /* Increased shadow intensity to match index.html */
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
       text-align: center;
       max-width: 800px;
       width: 100%;
     }
     
     .logo {
-      width: 200px; /* Tamaño aumentado de 120px a 200px */
+      width: 200px;
       margin-bottom: 2rem;
       height: auto;
     }
@@ -81,7 +84,7 @@
 
     @media (max-width: 768px) {
       .logo {
-        width: 180px; /* Tamaño ligeramente reducido para móviles */
+        width: 180px;
       }
       
       .menu-grid {
@@ -91,7 +94,7 @@
 
     @media (max-width: 480px) {
       .logo {
-        width: 150px; /* Tamaño más pequeño para pantallas muy pequeñas */
+        width: 150px;
       }
       
       .menu-grid {
@@ -111,7 +114,6 @@
 </head>
 <body>
   <div class="menu-container">
-    <!-- Logo con tamaño aumentado -->
     <img src="img/logo.png" alt="Logo HGT Tour" class="logo">
     <h1 class="titulo-app">Software de Mantenciones HGT Tour</h1>
     <h2>Menú Principal</h2>

@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Listado de Mantenimientos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --color-primary: #3f72af;
+      --color-secondary: #dbe2ef;
+      --color-text: #112d4e;
+      --color-accent: #2c5282;
+      --color-success: #2ecc71;
+      --color-error: #e74c3c;
+      --color-warning: #f39c12;
+      --border-radius: 8px;
+      --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--color-text);
+    }
+
+    .container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      max-width: 1200px;
+      width: 100%;
+      padding: 30px;
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--color-primary);
+      margin-bottom: 25px;
+      font-size: 1.8rem;
+    }
+
+    .btn {
+      padding: 12px 25px;
+      border: none;
+      border-radius: var(--border-radius);
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-success {
+      background: var(--color-success);
+    }
+
+    .btn-success:hover {
+      background: #27ae60;
+    }
+
+    .btn-danger {
+      background: var(--color-error);
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+
+    .btn-info {
+      background: var(--color-primary);
+    }
+
+    .btn-info:hover {
+      background: var(--color-accent);
+    }
+
+    .btn-warning {
+      background: var(--color-warning);
+    }
+
+    .btn-warning:hover {
+      background: #e67e22;
+    }
+
+    .btn-sm {
+      padding: 8px 15px;
+      font-size: 0.9rem;
+    }
+
+    .center {
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .status-message {
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: var(--border-radius);
+      text-align: center;
+      display: none;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: var(--color-error);
+      border-left: 4px solid var(--color-error);
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: var(--color-success);
+      border-left: 4px solid var(--color-success);
+    }
+
+    /* Estilos para la lista de mantenimientos */
+    .lista-mantenimientos {
+      width: 100%;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .lista-mantenimientos table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      min-width: 1000px;
+    }
+
+    .lista-mantenimientos th, .lista-mantenimientos td {
+      padding: 12px;
+      border: 1px solid #ddd;
+      text-align: left;
+    }
+
+    .lista-mantenimientos th {
+      background-color: var(--color-primary);
+      color: white;
+      position: sticky;
+      top: 0;
+    }
+
+    .lista-mantenimientos tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    .lista-mantenimientos tr:hover {
+      background-color: #e9ecef;
+      cursor: pointer;
+    }
+
+    /* Estilos para el gráfico */
+    .chart-container {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      height: 300px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .chart-wrapper {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+
+    /* Estilos para el modal de impresión */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 900px;
+      border-radius: var(--border-radius);
+      box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover {
+      color: black;
+    }
+
+    /* Estilos para el formato de impresión */
+    .print-format {
+      width: 100%;
+      font-family: Arial, sans-serif;
+    }
+
+    .print-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #000;
+      padding-bottom: 10px;
+    }
+
+    .print-logo {
+      max-width: 150px;
+      height: auto;
+    }
+
+    .print-title {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .print-section {
+      margin-bottom: 15px;
+    }
+
+    .print-section-title {
+      font-weight: bold;
+      background-color: #f0f0f0;
+      padding: 5px;
+      border-left: 4px solid var(--color-primary);
+    }
+
+    .print-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    .print-table th {
+      background-color: #f0f0f0;
+      text-align: left;
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .print-table td {
+      padding: 8px;
+      border: 1px solid #ddd;
+    }
+
+    .print-row {
+      display: flex;
+      margin-bottom: 10px;
+    }
+
+    .print-col {
+      flex: 1;
+      padding: 5px;
+    }
+
+    .print-label {
+      font-weight: bold;
+    }
+
+    .print-signatures {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 40px;
+    }
+
+    .print-signature {
+      text-align: center;
+      width: 200px;
+      border-top: 1px solid #000;
+      padding-top: 5px;
+    }
+
+    .empty-space {
+      min-height: 150px;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      .printable, .printable * {
+        visibility: visible;
+      }
+      .printable {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        padding: 20px;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-format {
+        width: 100%;
+        font-size: 14px;
+      }
+      .print-table {
+        page-break-inside: avoid;
+      }
+    }
+
+    /* Filtros */
+    .filtros {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: var(--border-radius);
+    }
+
+    .filtro-item {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .filtro-item label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .filtro-item input, .filtro-item select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+    }
+
+    /* Botón Volver */
+    .btn-volver {
+      background: #6c757d;
+      margin-bottom: 20px;
+    }
+
+    .btn-volver:hover {
+      background: #5a6268;
+    }
+
+    @media (max-width: 768px) {
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .lista-mantenimientos th, .lista-mantenimientos td {
+        padding: 8px;
+        font-size: 0.9rem;
+      }
+
+      .modal-content {
+        width: 95%;
+        margin: 10% auto;
+      }
+
+      .filtros {
+        flex-direction: column;
+      }
+
+      .chart-container {
+        height: 250px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Botón Volver -->
+    <button class="btn btn-volver" onclick="window.location.href='mantenimientos.html'">
+      <i class="fas fa-arrow-left"></i> Volver
+    </button>
+
+    <div class="center">
+      <h2>Listado de Mantenimientos</h2>
+    </div>
+
+    <div id="error-message" class="status-message error" style="display: none;"></div>
+    <div id="success-message" class="status-message success" style="display: none;"></div>
+
+    <!-- Filtros -->
+    <div class="filtros">
+      <div class="filtro-item">
+        <label for="filtro-patente">Patente:</label>
+        <input type="text" id="filtro-patente" placeholder="Buscar por patente">
+      </div>
+      <div class="filtro-item">
+        <label for="filtro-tipo">Tipo:</label>
+        <select id="filtro-tipo">
+          <option value="">Todos</option>
+          <!-- Las opciones se cargarán dinámicamente desde la base de datos -->
+        </select>
+      </div>
+      <div class="filtro-item">
+        <label for="filtro-fecha-desde">Desde:</label>
+        <input type="date" id="filtro-fecha-desde">
+      </div>
+      <div class="filtro-item">
+        <label for="filtro-fecha-hasta">Hasta:</label>
+        <input type="date" id="filtro-fecha-hasta">
+      </div>
+      <div class="filtro-item">
+        <label for="filtro-realizado">Estado:</label>
+        <select id="filtro-realizado">
+          <option value="">Todos</option>
+          <option value="true">Realizado</option>
+          <option value="false">No Realizado</option>
+        </select>
+      </div>
+      <div class="filtro-item" style="align-self: flex-end;">
+        <button class="btn btn-info" onclick="aplicarFiltros()">
+          <i class="fas fa-filter"></i> Filtrar
+        </button>
+        <button class="btn btn-secondary" onclick="limpiarFiltros()">
+          <i class="fas fa-broom"></i> Limpiar
+        </button>
+      </div>
+    </div>
+
+    <!-- Gráfico de mantenimientos -->
+    <div class="chart-container">
+      <div class="chart-wrapper">
+        <canvas id="mantenimientosChart"></canvas>
+      </div>
+    </div>
+
+    <div class="lista-mantenimientos">
+      <table>
+        <thead>
+          <tr>
+            <th>OT</th>
+            <th>Patente</th>
+            <th>Fecha</th>
+            <th>Tipo</th>
+            <th>Kilometraje</th>
+            <th>Realizado</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-mantenimientos">
+          <!-- Los mantenimientos se cargarán aquí -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal para impresión -->
+  <div id="printModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="cerrarModal()">&times;</span>
+      <div id="print-content" class="print-format printable">
+        <!-- Contenido de impresión se cargará dinámicamente -->
+      </div>
+      <div class="center no-print">
+        <button class="btn btn-primary" onclick="window.print()">
+          <i class="fas fa-print"></i> Imprimir
+        </button>
+        <button class="btn btn-secondary" onclick="cerrarModal()">
+          <i class="fas fa-times"></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd2pkdmpsZnp0ZXd0bWtyeHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDg0ODEsImV4cCI6MjA2NzIyNDQ4MX0.z0C2PtfkvYwIYfFjnFmdRicn_Jfqyq_SbCHKycHBX-4';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    let mantenimientosChart;
+
+    // Mostrar mensaje de error
+    function mostrarError(mensaje) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = mensaje;
+      errorElement.style.display = 'block';
+      
+      setTimeout(() => {
+        errorElement.style.display = 'none';
+      }, 5000);
+    }
+
+    // Mostrar mensaje de éxito
+    function mostrarExito(mensaje) {
+      const successElement = document.getElementById('success-message');
+      successElement.textContent = mensaje;
+      successElement.style.display = 'block';
+      
+      setTimeout(() => {
+        successElement.style.display = 'none';
+      }, 3000);
+    }
+
+    // Cargar tipos de mantenimiento únicos desde la base de datos
+    async function cargarTiposMantenimiento() {
+      const { data, error } = await supabase
+        .from('mantenimientos')
+        .select('tipo')
+        .not('tipo', 'is', null)
+        .order('tipo', { ascending: true });
+
+      if (error) {
+        console.error('Error al cargar tipos de mantenimiento:', error);
+        return;
+      }
+
+      // Obtener valores únicos
+      const tiposUnicos = [...new Set(data.map(item => item.tipo))];
+      
+      const selectTipo = document.getElementById('filtro-tipo');
+      
+      // Limpiar opciones existentes (excepto la primera)
+      while (selectTipo.options.length > 1) {
+        selectTipo.remove(1);
+      }
+
+      // Agregar nuevas opciones
+      tiposUnicos.forEach(tipo => {
+        const option = document.createElement('option');
+        option.value = tipo;
+        option.textContent = tipo;
+        selectTipo.appendChild(option);
+      });
+    }
+
+    // Actualizar gráfico de mantenimientos
+    function actualizarGrafico(data) {
+      const ctx = document.getElementById('mantenimientosChart').getContext('2d');
+      
+      // Contar mantenimientos realizados y no realizados
+      const realizados = data.filter(m => m.realizado).length;
+      const noRealizados = data.filter(m => !m.realizado).length;
+      
+      // Destruir el gráfico anterior si existe
+      if (mantenimientosChart) {
+        mantenimientosChart.destroy();
+      }
+      
+      // Crear nuevo gráfico
+      mantenimientosChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Realizados', 'No Realizados'],
+          datasets: [{
+            data: [realizados, noRealizados],
+            backgroundColor: [
+              'rgba(46, 204, 113, 0.7)',
+              'rgba(231, 76, 60, 0.7)'
+            ],
+            borderColor: [
+              'rgba(46, 204, 113, 1)',
+              'rgba(231, 76, 60, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            title: {
+              display: true,
+              text: 'Mantenimientos Realizados vs No Realizados',
+              font: {
+                size: 14
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Cargar la lista de mantenimientos desde Supabase con filtros
+    async function cargarListaMantenimientos() {
+      const tabla = document.getElementById('tabla-mantenimientos');
+      tabla.innerHTML = '<tr><td colspan="6" style="text-align: center;">Cargando...</td></tr>';
+
+      // Obtener valores de los filtros
+      const patente = document.getElementById('filtro-patente').value.trim();
+      const tipo = document.getElementById('filtro-tipo').value;
+      const fechaDesde = document.getElementById('filtro-fecha-desde').value;
+      const fechaHasta = document.getElementById('filtro-fecha-hasta').value;
+      const realizado = document.getElementById('filtro-realizado').value;
+
+      // Construir consulta con filtros
+      let query = supabase
+        .from('mantenimientos')
+        .select('*')
+        .order('id', { ascending: false })
+        .order('fecha', { ascending: false });
+
+      if (patente) {
+        query = query.ilike('patente', `%${patente}%`);
+      }
+
+      if (tipo) {
+        query = query.eq('tipo', tipo);
+      }
+
+      if (fechaDesde) {
+        query = query.gte('fecha', fechaDesde);
+      }
+
+      if (fechaHasta) {
+        query = query.lte('fecha', fechaHasta);
+      }
+
+      if (realizado !== '') {
+        query = query.eq('realizado', realizado === 'true');
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Error al cargar mantenimientos:', error);
+        tabla.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Error al cargar los mantenimientos</td></tr>';
+        return;
+      }
+
+      tabla.innerHTML = '';
+
+      if (data.length === 0) {
+        tabla.innerHTML = '<tr><td colspan="6" style="text-align: center;">No hay mantenimientos registrados con los filtros aplicados</td></tr>';
+        return;
+      }
+
+      // Actualizar gráfico con los datos
+      actualizarGrafico(data);
+
+      data.forEach(mantenimiento => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${mantenimiento.id}</td>
+          <td>${mantenimiento.patente}</td>
+          <td>${mantenimiento.fecha}</td>
+          <td>${mantenimiento.tipo || 'N/A'}</td>
+          <td>${mantenimiento.kilometraje}</td>
+          <td>${mantenimiento.realizado ? 'Sí' : 'No'}</td>
+        `;
+        tr.addEventListener('click', () => verDetalleMantenimiento(mantenimiento.id));
+        tabla.appendChild(tr);
+      });
+    }
+
+    // Aplicar filtros
+    function aplicarFiltros() {
+      cargarListaMantenimientos();
+    }
+
+    // Limpiar filtros
+    function limpiarFiltros() {
+      document.getElementById('filtro-patente').value = '';
+      document.getElementById('filtro-tipo').value = '';
+      document.getElementById('filtro-fecha-desde').value = '';
+      document.getElementById('filtro-fecha-hasta').value = '';
+      document.getElementById('filtro-realizado').value = '';
+      cargarListaMantenimientos();
+    }
+
+    // Obtener datos de la máquina por patente
+    async function obtenerDatosMaquina(patente) {
+      const { data, error } = await supabase
+        .from('maquinas')
+        .select('*')
+        .eq('patente', patente)
+        .single();
+
+      if (error || !data) {
+        console.error('Error al cargar datos de la máquina:', error);
+        return {
+          marca: 'N/A',
+          modelo: 'N/A',
+          fabricante: 'N/A'
+        };
+      }
+      
+      return {
+        marca: data.marca || 'N/A',
+        modelo: data.modelo || 'N/A',
+        fabricante: data.fabricante || 'N/A'
+      };
+    }
+
+    // Ver detalles de un mantenimiento para impresión
+    async function verDetalleMantenimiento(id) {
+      const { data: mantenimiento, error } = await supabase
+        .from('mantenimientos')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (error) {
+        mostrarError('Error al cargar el mantenimiento');
+        return;
+      }
+
+      // Obtener datos de la máquina asociada
+      const datosMaquina = await obtenerDatosMaquina(mantenimiento.patente);
+
+      const modal = document.getElementById('printModal');
+      const printContent = document.getElementById('print-content');
+      
+      // Construir el contenido de impresión
+      let html = `
+        <div class="print-header">
+          <img src="img/logo.png" class="print-logo" alt="Logo">
+          <div class="print-title">ORDEN DE TRABAJO #${mantenimiento.id}</div>
+        </div>
+
+        <div class="print-section">
+          <div class="print-section-title">DATOS GENERALES DE LA MÁQUINA / EQUIPO</div>
+          <div class="print-row">
+            <div class="print-col">
+              <span class="print-label">Máquina-Equipo:</span> ${mantenimiento.patente}
+            </div>
+            <div class="print-col">
+              <span class="print-label">Marca:</span> ${datosMaquina.marca}
+            </div>
+          </div>
+          <div class="print-row">
+            <div class="print-col">
+              <span class="print-label">Modelo:</span> ${datosMaquina.modelo}
+            </div>
+            <div class="print-col">
+              <span class="print-label">Fabricante:</span> ${datosMaquina.fabricante}
+            </div>
+          </div>
+        </div>
+
+        <div class="print-section">
+          <div class="print-section-title">DATOS DEL MANTENIMIENTO</div>
+          <div class="print-row">
+            <div class="print-col">
+              <span class="print-label">Mantenimiento #</span> ${mantenimiento.id}
+            </div>
+            <div class="print-col">
+              <span class="print-label">Fecha y hora inicio:</span> ${mantenimiento.fecha} ${mantenimiento.hora || ''}
+            </div>
+          </div>
+          <div class="print-row">
+            <div class="print-col">
+              <span class="print-label">Tipo:</span> ${mantenimiento.tipo || 'N/A'}
+            </div>
+            <div class="print-col">
+              <span class="print-label">¿Realizado?</span> ${mantenimiento.realizado ? 'REALIZADO' : 'NO REALIZADO'}
+            </div>
+          </div>
+          <div class="print-row">
+            <div class="print-col">
+              <span class="print-label">Responsable:</span> ${mantenimiento.responsable || 'N/A'}
+            </div>
+            <div class="print-col">
+              <span class="print-label">KM:</span> ${mantenimiento.kilometraje || '0'}
+            </div>
+          </div>
+          <div class="print-row">
+            <div class="print-col">
+              <span class="print-label">Fecha de cierre:</span> ${mantenimiento.fecha_cierre || 'Pendiente'}
+            </div>
+          </div>
+        </div>
+
+        <div class="print-section">
+          <div class="print-section-title">DESCRIPCION DEL TRABAJO A REALIZAR</div>
+          <div class="empty-space">
+            ${mantenimiento.descripcion || ''}
+          </div>
+        </div>
+
+        <div class="print-section">
+          <div class="print-section-title">INSUMOS / MATERIALES</div>
+          <table class="print-table">
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+              </tr>
+            </thead>
+            <tbody>
+      `;
+
+      // Mostrar insumos si existen
+      if (mantenimiento.insumos && mantenimiento.insumos.length > 0) {
+        mantenimiento.insumos.forEach(insumo => {
+          html += `
+            <tr>
+              <td>${insumo.descripcion}</td>
+              <td>${insumo.cantidad}</td>
+            </tr>
+          `;
+        });
+      } else {
+        html += `
+          <tr>
+            <td class="empty-space"></td>
+            <td class="empty-space"></td>
+          </tr>
+        `;
+      }
+
+      html += `
+            </tbody>
+          </table>
+        </div>
+
+        <div class="print-section">
+          <div class="print-section-title">FIRMAS</div>
+          <div class="print-signatures">
+            <div class="print-signature">
+              Elaborado por:<br>
+              ${mantenimiento.hecho_por || ''}
+            </div>
+            <div class="print-signature">
+              Autorizado por:<br>
+              ${mantenimiento.autorizado_por || ''}
+            </div>
+          </div>
+        </div>
+      `;
+
+      printContent.innerHTML = html;
+      modal.style.display = 'block';
+    }
+
+    // Cerrar el modal
+    function cerrarModal() {
+      document.getElementById('printModal').style.display = 'none';
+    }
+
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Cargar tipos de mantenimiento primero
+      await cargarTiposMantenimiento();
+      
+      // Luego cargar la lista de mantenimientos
+      cargarListaMantenimientos();
+      
+      // Establecer fechas por defecto (últimos 30 días)
+      const hoy = new Date();
+      const hace30Dias = new Date();
+      hace30Dias.setDate(hoy.getDate() - 30);
+      
+      document.getElementById('filtro-fecha-desde').value = hace30Dias.toISOString().split('T')[0];
+      document.getElementById('filtro-fecha-hasta').value = hoy.toISOString().split('T')[0];
+    });
+
+    // Cerrar modal al hacer clic fuera del contenido
+    window.onclick = function(event) {
+      const modal = document.getElementById('printModal');
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    }
+  </script>
+</body>
+</html>

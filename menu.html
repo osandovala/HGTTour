@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Menú Principal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --color-primary: #3f72af;
+      --color-secondary: #dbe2ef;
+      --color-text: #112d4e;
+    }
+    
+    body {
+      background-color: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    
+    .menu-container {
+      background: #fff;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      max-width: 800px;
+      width: 100%;
+    }
+    
+    .logo {
+      width: 200px; /* Tamaño aumentado de 120px a 200px */
+      margin-bottom: 2rem;
+      height: auto;
+    }
+    
+    .titulo-app {
+      color: var(--color-text);
+      font-size: 1.8rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    h2 {
+      color: var(--color-primary);
+      margin-bottom: 2rem;
+      font-size: 1.5rem;
+    }
+    
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .menu-grid button {
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 1.5rem 1rem;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: transform 0.3s, background 0.3s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .menu-grid button:hover {
+      background: #2c5282;
+      transform: translateY(-5px);
+    }
+    
+    .menu-grid i {
+      font-size: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .logo {
+        width: 180px; /* Tamaño ligeramente reducido para móviles */
+      }
+      
+      .menu-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .logo {
+        width: 150px; /* Tamaño más pequeño para pantallas muy pequeñas */
+      }
+      
+      .menu-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .titulo-app {
+        font-size: 1.5rem;
+      }
+      
+      h2 {
+        font-size: 1.3rem;
+      }
+    }
+  </style>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" />
+</head>
+<body>
+  <div class="menu-container">
+    <!-- Logo con tamaño aumentado -->
+    <img src="img/logo.png" alt="Logo HGT Tour" class="logo">
+    <h1 class="titulo-app">Software de Mantenciones HGT Tour</h1>
+    <h2>Menú Principal</h2>
+
+    <div class="menu-grid">
+      <button onclick="window.location.href='agregar_maquina.html'">
+        <i class="bi bi-cpu"></i><span>Máquinas / Equipos</span>
+      </button>
+      <button onclick="window.location.href='mantenimientos.html'">
+        <i class="bi bi-tools"></i><span>Mantenimientos</span>
+      </button>
+      <button onclick="window.location.href='estadisticas.html'">
+        <i class="bi bi-bar-chart"></i><span>Estadísticas</span>
+      </button>
+      <button onclick="window.location.href='agregar_mecanicos.html'">
+        <i class="bi bi-person-plus"></i><span>Agregar Mecánicos</span>
+      </button>
+      <button onclick="window.location.href='documentacion.html'">
+        <i class="bi bi-journal-text"></i><span>Documentación</span>
+      </button>
+      <button onclick="window.location.href='index.html'">
+        <i class="bi bi-box-arrow-left"></i><span>Salir</span>
+      </button>
+    </div>
+  </div>
+</body>
+</html>

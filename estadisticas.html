@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Estadísticas de Mantenimientos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --color-primary: #3f72af;
+      --color-secondary: #dbe2ef;
+      --color-text: #112d4e;
+      --color-accent: #2c5282;
+      --color-success: #2ecc71;
+      --color-error: #e74c3c;
+      --color-warning: #f39c12;
+      --border-radius: 8px;
+      --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--color-text);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--color-primary);
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--color-secondary);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+    }
+
+    .filters-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 20px 0;
+      background: white;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 200px;
+    }
+
+    .filter-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--color-text);
+    }
+
+    .filter-select, .filter-input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    .chart-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 20px 0;
+    }
+
+    .chart-wrapper {
+      flex: 1;
+      min-width: 300px;
+      background: white;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
+    .chart-title {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: var(--color-primary);
+      border-bottom: 1px solid var(--color-secondary);
+      padding-bottom: 10px;
+    }
+
+    .chart-canvas-container {
+      height: 400px;
+      position: relative;
+    }
+
+    .stats-container {
+      display: flex;
+      gap: 15px;
+      background: white;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+
+    .stat-card {
+      flex: 1;
+      min-width: 150px;
+      text-align: center;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      background: var(--color-secondary);
+    }
+
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--color-primary);
+      margin: 10px 0;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--color-text);
+    }
+
+    .status-message {
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: var(--color-error);
+      border-left: 4px solid var(--color-error);
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: var(--color-success);
+      border-left: 4px solid var(--color-success);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: var(--color-primary);
+      font-weight: bold;
+    }
+
+    .loading i {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .info-text {
+      text-align: center;
+      margin: 10px 0;
+      font-style: italic;
+      color: var(--color-accent);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Estadísticas de Mantenimientos</h1>
+
+    <!-- Filtros por período de tiempo -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label for="filter-period" class="filter-label">Período:</label>
+        <select id="filter-period" class="filter-select" onchange="cambiarPeriodo()">
+          <option value="7">Últimos 7 días</option>
+          <option value="30" selected>Últimos 30 días</option>
+          <option value="90">Últimos 90 días</option>
+          <option value="365">Últimos 365 días</option>
+          <option value="custom">Personalizado</option>
+        </select>
+      </div>
+
+      <div class="filter-group" id="custom-date-group" style="display: none;">
+        <label for="filter-start-date" class="filter-label">Fecha inicio:</label>
+        <input type="date" id="filter-start-date" class="filter-input">
+      </div>
+
+      <div class="filter-group" id="custom-date-group-end" style="display: none;">
+        <label for="filter-end-date" class="filter-label">Fecha fin:</label>
+        <input type="date" id="filter-end-date" class="filter-input">
+      </div>
+
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="aplicarFiltros()">
+          <i class="fas fa-filter"></i> Aplicar Filtros
+        </button>
+        <button class="btn btn-secondary" onclick="limpiarFiltros()">
+          <i class="fas fa-times"></i> Limpiar
+        </button>
+      </div>
+    </div>
+
+    <!-- Estadísticas resumidas -->
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-label">Total Mantenimientos</div>
+        <div class="stat-value" id="total-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Preventivos</div>
+        <div class="stat-value" id="preventivo-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Correctivos</div>
+        <div class="stat-value" id="correctivo-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">% Preventivos</div>
+        <div class="stat-value" id="preventivo-percent">0%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">% Correctivos</div>
+        <div class="stat-value" id="correctivo-percent">0%</div>
+      </div>
+    </div>
+
+    <!-- Gráfico 1: Correctivas vs Preventivas -->
+    <div class="chart-container">
+      <div class="chart-wrapper">
+        <div class="chart-title">Mantenimientos Preventivos vs Correctivos</div>
+        <div class="info-text">Cantidades y porcentajes de cada tipo</div>
+        <div class="chart-canvas-container">
+          <canvas id="tipo-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico 2: Distribución detallada por tipos -->
+    <div class="chart-container">
+      <div class="chart-wrapper">
+        <div class="chart-title">Distribución Detallada por Tipos</div>
+        <div class="info-text">Desglose de todos los subtipos encontrados</div>
+        <div class="chart-canvas-container">
+          <canvas id="tipos-detalle-chart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mensajes de estado -->
+    <div id="error-message" class="status-message error" style="display: none;"></div>
+    <div id="success-message" class="status-message success" style="display: none;"></div>
+    <div id="loading-message" class="loading" style="display: none;">
+      <i class="fas fa-spinner"></i> Cargando datos...
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd2pkdmpsZnp0ZXd0bWtyeHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDg0ODEsImV4cCI6MjA2NzIyNDQ4MX0.z0C2PtfkvYwIYfFjnFmdRicn_Jfqyq_SbCHKycHBX-4';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let tipoChart = null;
+    let tiposDetalleChart = null;
+    let mantenimientosData = [];
+
+    // Mostrar mensaje de error
+    function mostrarError(mensaje) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = mensaje;
+      errorElement.style.display = 'block';
+      
+      setTimeout(() => {
+        errorElement.style.display = 'none';
+      }, 5000);
+    }
+
+    // Mostrar mensaje de éxito
+    function mostrarExito(mensaje) {
+      const successElement = document.getElementById('success-message');
+      successElement.textContent = mensaje;
+      successElement.style.display = 'block';
+      
+      setTimeout(() => {
+        successElement.style.display = 'none';
+      }, 3000);
+    }
+
+    // Mostrar carga
+    function mostrarCarga(mostrar) {
+      document.getElementById('loading-message').style.display = mostrar ? 'block' : 'none';
+    }
+
+    // Cambiar visibilidad de filtros personalizados
+    function cambiarPeriodo() {
+      const periodo = document.getElementById('filter-period').value;
+      const customGroup = document.getElementById('custom-date-group');
+      const customGroupEnd = document.getElementById('custom-date-group-end');
+      
+      if (periodo === 'custom') {
+        customGroup.style.display = 'flex';
+        customGroupEnd.style.display = 'flex';
+        
+        // Establecer fechas por defecto (últimos 30 días)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - 30);
+        
+        document.getElementById('filter-start-date').value = startDate.toISOString().split('T')[0];
+        document.getElementById('filter-end-date').value = endDate.toISOString().split('T')[0];
+      } else {
+        customGroup.style.display = 'none';
+        customGroupEnd.style.display = 'none';
+      }
+    }
+
+    // Obtener fechas según el filtro seleccionado
+    function obtenerFechasFiltro() {
+      const periodo = document.getElementById('filter-period').value;
+      
+      if (periodo === 'custom') {
+        const startDate = document.getElementById('filter-start-date').value;
+        const endDate = document.getElementById('filter-end-date').value;
+        
+        if (!startDate || !endDate) {
+          mostrarError('Seleccione ambas fechas para el período personalizado');
+          return null;
+        }
+        
+        return {
+          start: new Date(startDate),
+          end: new Date(endDate)
+        };
+      }
+      
+      const dias = parseInt(periodo);
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(startDate.getDate() - dias);
+      
+      return {
+        start: startDate,
+        end: endDate
+      };
+    }
+
+    // Formatear fecha para Supabase
+    function formatDateForSupabase(date) {
+      return date.toISOString().split('T')[0];
+    }
+
+    // Cargar datos de mantenimientos
+    async function cargarDatos() {
+      try {
+        mostrarCarga(true);
+        
+        const fechas = obtenerFechasFiltro();
+        if (!fechas) return;
+        
+        let query = supabase
+          .from('mantenimientos')
+          .select('*');
+        
+        // Aplicar filtro de fechas
+        query = query
+          .gte('fecha', formatDateForSupabase(fechas.start))
+          .lte('fecha', formatDateForSupabase(fechas.end));
+        
+        const { data, error } = await query;
+        
+        if (error) throw error;
+        
+        mantenimientosData = data || [];
+        actualizarEstadisticas();
+        actualizarGraficos();
+        
+        mostrarExito(`Datos cargados correctamente (${mantenimientosData.length} registros)`);
+      } catch (error) {
+        console.error('Error al cargar mantenimientos:', error);
+        mostrarError('Error al cargar los datos: ' + error.message);
+      } finally {
+        mostrarCarga(false);
+      }
+    }
+
+    // Aplicar filtros
+    function aplicarFiltros() {
+      cargarDatos();
+    }
+
+    // Limpiar filtros
+    function limpiarFiltros() {
+      document.getElementById('filter-period').value = '30';
+      document.getElementById('custom-date-group').style.display = 'none';
+      document.getElementById('custom-date-group-end').style.display = 'none';
+      cargarDatos();
+    }
+
+    // Actualizar estadísticas
+    function actualizarEstadisticas() {
+      const total = mantenimientosData.length;
+      const preventivos = mantenimientosData.filter(m => m.tipo === 'preventivo').length;
+      const correctivos = mantenimientosData.filter(m => m.tipo === 'correctivo').length;
+      
+      const preventivoPercent = total > 0 ? Math.round((preventivos / total) * 100) : 0;
+      const correctivoPercent = total > 0 ? Math.round((correctivos / total) * 100) : 0;
+      
+      document.getElementById('total-count').textContent = total;
+      document.getElementById('preventivo-count').textContent = preventivos;
+      document.getElementById('correctivo-count').textContent = correctivos;
+      document.getElementById('preventivo-percent').textContent = `${preventivoPercent}%`;
+      document.getElementById('correctivo-percent').textContent = `${correctivoPercent}%`;
+    }
+
+    // Actualizar gráficos
+    function actualizarGraficos() {
+      actualizarGraficoTipos();
+      actualizarGraficoDetalleTipos();
+    }
+
+    // Gráfico de Correctivos vs Preventivos
+    function actualizarGraficoTipos() {
+      const ctx = document.getElementById('tipo-chart').getContext('2d');
+      const preventivos = mantenimientosData.filter(m => m.tipo === 'preventivo').length;
+      const correctivos = mantenimientosData.filter(m => m.tipo === 'correctivo').length;
+      const total = mantenimientosData.length;
+      
+      const preventivoPercent = total > 0 ? Math.round((preventivos / total) * 100) : 0;
+      const correctivoPercent = total > 0 ? Math.round((correctivos / total) * 100) : 0;
+      
+      const data = {
+        labels: ['Preventivos', 'Correctivos'],
+        datasets: [{
+          data: [preventivos, correctivos],
+          backgroundColor: [
+            'rgba(46, 204, 113, 0.8)', // Verde para preventivos
+            'rgba(231, 76, 60, 0.8)'   // Rojo para correctivos
+          ],
+          borderColor: [
+            'rgba(46, 204, 113, 1)',
+            'rgba(231, 76, 60, 1)'
+          ],
+          borderWidth: 1
+        }]
+      };
+      
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const percentage = label === 'Preventivos' ? preventivoPercent : correctivoPercent;
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
+          },
+          datalabels: {
+            formatter: (value, ctx) => {
+              const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+              const percentage = Math.round((value / total) * 100);
+              return `${value}\n(${percentage}%)`;
+            },
+            color: '#fff',
+            font: {
+              weight: 'bold',
+              size: 14
+            }
+          }
+        }
+      };
+      
+      // Destruir gráfico anterior si existe
+      if (tipoChart) {
+        tipoChart.destroy();
+      }
+      
+      // Crear nuevo gráfico con el plugin datalabels
+      tipoChart = new Chart(ctx, {
+        type: 'bar',
+        data: data,
+        options: options,
+        plugins: [ChartDataLabels]
+      });
+    }
+
+    // Gráfico de distribución por tipos de mantenimiento
+    function actualizarGraficoDetalleTipos() {
+      const ctx = document.getElementById('tipos-detalle-chart').getContext('2d');
+      
+      // Agrupar por tipo de mantenimiento (incluyendo subtipos)
+      const tiposMap = {};
+      mantenimientosData.forEach(m => {
+        if (!m.tipo) return;
+        if (!tiposMap[m.tipo]) {
+          tiposMap[m.tipo] = 0;
+        }
+        tiposMap[m.tipo]++;
+      });
+      
+      // Ordenar por cantidad (mayor a menor)
+      const tiposOrdenados = Object.keys(tiposMap).sort((a, b) => tiposMap[b] - tiposMap[a]);
+      
+      const tipos = tiposOrdenados;
+      const counts = tipos.map(tipo => tiposMap[tipo]);
+      const total = counts.reduce((a, b) => a + b, 0);
+      
+      // Colores dinámicos
+      const backgroundColors = tipos.map((_, i) => {
+        const hue = (i * 137.508) % 360; // Distribución uniforme de colores
+        return `hsla(${hue}, 70%, 60%, 0.8)`;
+      });
+      
+      const data = {
+        labels: tipos,
+        datasets: [{
+          data: counts,
+          backgroundColor: backgroundColors,
+          borderColor: '#fff',
+          borderWidth: 1
+        }]
+      };
+      
+      const options = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'bottom',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                const percentage = Math.round((value / total) * 100);
+                return `${label}: ${value} (${percentage}%)`;
+              }
+            }
+          },
+          datalabels: {
+            formatter: (value, ctx) => {
+              const percentage = Math.round((value / total) * 100);
+              return `${value}\n(${percentage}%)`;
+            },
+            color: '#fff',
+            font: {
+              weight: 'bold',
+              size: 12
+            }
+          }
+        }
+      };
+      
+      // Destruir gráfico anterior si existe
+      if (tiposDetalleChart) {
+        tiposDetalleChart.destroy();
+      }
+      
+      // Crear nuevo gráfico con el plugin datalabels
+      tiposDetalleChart = new Chart(ctx, {
+        type: 'pie',
+        data: data,
+        options: options,
+        plugins: [ChartDataLabels]
+      });
+    }
+
+    // Inicializar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      // Configurar fecha máxima para los filtros
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('filter-end-date').max = today;
+      document.getElementById('filter-start-date').max = today;
+      
+      // Cargar datos iniciales
+      cargarDatos();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Máquinas - HGT Tour</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+    <style>
+        :root {
+            --color-primary: #3f72af;
+            --color-secondary: #dbe2ef;
+            --color-text: #112d4e;
+            --color-error: #e74c3c;
+            --color-success: #2ecc71;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--color-text);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        h1 {
+            color: var(--color-primary);
+            margin-bottom: 15px;
+            text-align: center;
+            font-size: 1.8rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--color-primary);
+        }
+        
+        .header-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2c5282;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .btn-menu {
+            background-color: #f39c12;
+            color: white;
+        }
+        
+        .btn-menu:hover {
+            background-color: #e67e22;
+        }
+        
+        .btn-sm {
+            padding: 5px 8px;
+            font-size: 0.85rem;
+        }
+        
+        .btn-danger {
+            background-color: var(--color-error);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .status-message {
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: var(--border-radius);
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: var(--color-error);
+            border-left: 4px solid var(--color-error);
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: var(--color-success);
+            border-left: 4px solid var(--color-success);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        th, td {
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .actions-cell {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        form {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            form {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-actions {
+                flex-direction: column;
+            }
+            
+            .action-buttons {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+        
+        .form-group {
+            margin-bottom: 12px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: var(--color-error);
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px rgba(63, 114, 175, 0.2);
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .view-content {
+            display: none;
+        }
+        
+        .view-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        @media (max-width: 480px) {
+            .btn {
+                padding: 7px 10px;
+                font-size: 0.82rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Gestión de Máquinas - HGT Tour</h1>
+        
+        <div id="error-message" class="status-message error" style="display: none;"></div>
+        <div id="success-message" class="status-message success" style="display: none;"></div>
+        
+        <div class="header-actions">
+            <div class="action-buttons">
+                <button class="btn btn-primary" id="add-btn">
+                    <i class="fas fa-plus"></i> Agregar
+                </button>
+                <button class="btn btn-secondary" id="refresh-btn">
+                    <i class="fas fa-sync-alt"></i> Actualizar
+                </button>
+                <a href="menu.html" class="btn btn-menu">
+                    <i class="fas fa-home"></i> Volver al Menú
+                </a>
+            </div>
+        </div>
+        
+        <!-- Vista Listado -->
+        <div id="listado-view" class="view-content active">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Patente</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Fabricante</th>
+                            <th>Área</th>
+                            <th>N° Motor</th>
+                            <th>Año</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody">
+                        <!-- Listado completo se cargará aquí -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Vista Agregar Máquina -->
+        <div id="agregar-view" class="view-content">
+            <div class="form-container">
+                <h2>Agregar Nueva Máquina</h2>
+                <form id="formAgregarMaquina">
+                    <div class="form-group">
+                        <label for="patente" class="required-field">Patente</label>
+                        <input type="text" id="patente" name="patente" placeholder="Ej: ABCD1234" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="marca">Marca</label>
+                        <input type="text" id="marca" name="marca" placeholder="Ej: Caterpillar">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modelo">Modelo</label>
+                        <input type="text" id="modelo" name="modelo" placeholder="Ej: 320D">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fabricante">Fabricante</label>
+                        <input type="text" id="fabricante" name="fabricante" placeholder="Ej: Caterpillar Inc.">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="numero_chasis">Número de Chasis</label>
+                        <input type="text" id="numero_chasis" name="numero_chasis" placeholder="Número de chasis">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="area">Área</label>
+                        <input type="text" id="area" name="area" placeholder="Ej: Excavación">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="numero_motor">Número de Motor</label>
+                        <input type="number" id="numero_motor" name="numero_motor" placeholder="Ej: 123456789" min="0" oninput="validarNumero(this)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="anio">Año</label>
+                        <input type="number" id="anio" name="anio" placeholder="Ej: 2018" min="1900" max="2099">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="observaciones">Observaciones</label>
+                        <textarea id="observaciones" name="observaciones" placeholder="Notas adicionales" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancel-add">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submit-button">
+                            <span id="button-text"><i class="fas fa-save"></i> Guardar Máquina</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Vista Editar Máquina (dinámica) -->
+        <div id="editar-view" class="view-content">
+            <div class="form-container">
+                <h2>Editar Máquina</h2>
+                <form id="formEditarMaquina">
+                    <input type="hidden" id="edit-id" name="id">
+                    
+                    <div class="form-group">
+                        <label for="edit-patente" class="required-field">Patente</label>
+                        <input type="text" id="edit-patente" name="patente" placeholder="Ej: ABCD1234" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-marca">Marca</label>
+                        <input type="text" id="edit-marca" name="marca" placeholder="Ej: Caterpillar">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-modelo">Modelo</label>
+                        <input type="text" id="edit-modelo" name="modelo" placeholder="Ej: 320D">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-fabricante">Fabricante</label>
+                        <input type="text" id="edit-fabricante" name="fabricante" placeholder="Ej: Caterpillar Inc.">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-numero_chasis">Número de Chasis</label>
+                        <input type="text" id="edit-numero_chasis" name="numero_chasis" placeholder="Número de chasis">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-area">Área</label>
+                        <input type="text" id="edit-area" name="area" placeholder="Ej: Excavación">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-numero_motor">Número de Motor</label>
+                        <input type="number" id="edit-numero_motor" name="numero_motor" placeholder="Ej: 123456789" min="0" oninput="validarNumero(this)">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-anio">Año</label>
+                        <input type="number" id="edit-anio" name="anio" placeholder="Ej: 2018" min="1900" max="2099">
+                    </div>
+                    
+                    <div class="form-group full-width">
+                        <label for="edit-observaciones">Observaciones</label>
+                        <textarea id="edit-observaciones" name="observaciones" placeholder="Notas adicionales" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancel-edit">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submit-edit-button">
+                            <span id="edit-button-text"><i class="fas fa-save"></i> Guardar Cambios</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd2pkdmpsZnp0ZXd0bWtyeHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDg0ODEsImV4cCI6MjA2NzIyNDQ4MX0.z0C2PtfkvYwIYfFjnFmdRicn_Jfqyq_SbCHKycHBX-4';
+        
+        // Inicializar Supabase
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // Variables globales
+        let currentView = 'listado';
+        let machines = [];
+        
+        // Función para validar solo números
+        function validarNumero(input) {
+            input.value = input.value.replace(/[^0-9]/g, '');
+        }
+        
+        // Función para mostrar mensajes
+        function mostrarError(mensaje) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = mensaje;
+            errorElement.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Ocultar después de 5 segundos
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 5000);
+        }
+        
+        function mostrarExito(mensaje) {
+            const successElement = document.getElementById('success-message');
+            successElement.textContent = mensaje;
+            successElement.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Función para cambiar de vista
+        function changeView(view) {
+            currentView = view;
+            
+            // Mostrar vista activa
+            document.querySelectorAll('.view-content').forEach(view => {
+                view.classList.remove('active');
+            });
+            document.getElementById(`${view}-view`).classList.add('active');
+            
+            // Si es el listado, cargar máquinas
+            if (view === 'listado') {
+                renderMaquinas();
+            }
+        }
+        
+        // Función para cargar máquinas desde Supabase
+        async function cargarMaquinas() {
+            try {
+                const { data, error } = await supabase
+                    .from('maquinas')
+                    .select('*')
+                    .order('id', { ascending: false });
+                
+                if (error) throw error;
+                
+                machines = data || [];
+                return machines;
+            } catch (error) {
+                mostrarError('Error al cargar máquinas: ' + error.message);
+                return [];
+            }
+        }
+        
+        // Función para renderizar máquinas en la tabla
+        async function renderMaquinas() {
+            const tablaBody = document.getElementById('tablaBody');
+            tablaBody.innerHTML = '<tr><td colspan="9">Cargando máquinas...</td></tr>';
+            
+            const maquinas = await cargarMaquinas();
+            
+            tablaBody.innerHTML = '';
+            
+            if (maquinas.length === 0) {
+                tablaBody.innerHTML = '<tr><td colspan="9">No hay máquinas registradas</td></tr>';
+                return;
+            }
+            
+            maquinas.forEach(function(maquina) {
+                const fila = document.createElement('tr');
+                fila.innerHTML = `
+                    <td>${maquina.id}</td>
+                    <td>${maquina.patente || 'N/A'}</td>
+                    <td>${maquina.marca || 'N/A'}</td>
+                    <td>${maquina.modelo || 'N/A'}</td>
+                    <td>${maquina.fabricante || 'N/A'}</td>
+                    <td>${maquina.area || 'N/A'}</td>
+                    <td>${maquina.numero_motor || 'N/A'}</td>
+                    <td>${maquina.anio || 'N/A'}</td>
+                    <td class="actions-cell">
+                        <button class="btn btn-sm btn-primary" onclick="editarMaquina(${maquina.id})">
+                            <i class="fas fa-edit"></i> Editar
+                        </button>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarMaquina(${maquina.id})">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
+                    </td>
+                `;
+                tablaBody.appendChild(fila);
+            });
+        }
+        
+        // Función para agregar una máquina
+        async function agregarMaquina(maquinaData) {
+            try {
+                const { data, error } = await supabase
+                    .from('maquinas')
+                    .insert([maquinaData]);
+                
+                if (error) throw error;
+                
+                mostrarExito('Máquina agregada correctamente');
+                document.getElementById('formAgregarMaquina').reset();
+                
+                // Actualizar datos
+                await cargarMaquinas();
+                
+                // Cambiar a vista de listado
+                changeView('listado');
+                
+                return true;
+            } catch (error) {
+                mostrarError('Error al agregar máquina: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Función para cargar datos de una máquina para editar
+        async function cargarMaquinaParaEditar(id) {
+            try {
+                const { data, error } = await supabase
+                    .from('maquinas')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                
+                // Llenar formulario
+                document.getElementById('edit-id').value = data.id;
+                document.getElementById('edit-patente').value = data.patente || '';
+                document.getElementById('edit-marca').value = data.marca || '';
+                document.getElementById('edit-modelo').value = data.modelo || '';
+                document.getElementById('edit-fabricante').value = data.fabricante || '';
+                document.getElementById('edit-numero_chasis').value = data.numero_chasis || '';
+                document.getElementById('edit-area').value = data.area || '';
+                document.getElementById('edit-numero_motor').value = data.numero_motor || '';
+                document.getElementById('edit-anio').value = data.anio || '';
+                document.getElementById('edit-observaciones').value = data.observaciones || '';
+                
+                // Cambiar a vista de edición
+                changeView('editar');
+                
+                return true;
+            } catch (error) {
+                mostrarError('Error al cargar máquina: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Función para editar máquina
+        async function editarMaquina(id) {
+            await cargarMaquinaParaEditar(id);
+        }
+        
+        // Función para actualizar máquina
+        async function actualizarMaquina(maquinaData) {
+            const id = maquinaData.id;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('maquinas')
+                    .update(maquinaData)
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                mostrarExito('Máquina actualizada correctamente');
+                
+                // Actualizar datos
+                await cargarMaquinas();
+                
+                // Cambiar a vista de listado
+                changeView('listado');
+                
+                return true;
+            } catch (error) {
+                mostrarError('Error al actualizar máquina: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Función para eliminar una máquina
+        async function eliminarMaquina(id) {
+            if (!confirm('¿Está seguro que desea eliminar esta máquina?\nEsta acción no se puede deshacer.')) {
+                return;
+            }
+            
+            try {
+                const { error } = await supabase
+                    .from('maquinas')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                mostrarExito('Máquina eliminada correctamente');
+                
+                // Actualizar datos
+                await cargarMaquinas();
+                renderMaquinas();
+                
+                return true;
+            } catch (error) {
+                mostrarError('Error al eliminar máquina: ' + error.message);
+                return false;
+            }
+        }
+        
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Configurar eventos de botones
+            document.getElementById('add-btn').addEventListener('click', () => {
+                changeView('agregar');
+            });
+            
+            // Botón de actualizar
+            document.getElementById('refresh-btn').addEventListener('click', async () => {
+                await cargarMaquinas();
+                if (currentView === 'listado') {
+                    renderMaquinas();
+                }
+                mostrarExito('Datos actualizados correctamente');
+            });
+            
+            // Botón cancelar agregar
+            document.getElementById('cancel-add').addEventListener('click', () => {
+                changeView('listado');
+            });
+            
+            // Botón cancelar editar
+            document.getElementById('cancel-edit').addEventListener('click', () => {
+                changeView('listado');
+            });
+            
+            // Formulario agregar máquina
+            document.getElementById('formAgregarMaquina').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Obtener datos del formulario
+                const maquinaData = {
+                    patente: document.getElementById('patente').value.trim(),
+                    marca: document.getElementById('marca').value.trim(),
+                    modelo: document.getElementById('modelo').value.trim(),
+                    fabricante: document.getElementById('fabricante').value.trim(),
+                    numero_chasis: document.getElementById('numero_chasis').value.trim(),
+                    area: document.getElementById('area').value.trim(),
+                    numero_motor: parseInt(document.getElementById('numero_motor').value) || 0,
+                    anio: parseInt(document.getElementById('anio').value) || new Date().getFullYear(),
+                    observaciones: document.getElementById('observaciones').value.trim()
+                };
+                
+                // Validar patente
+                if (!maquinaData.patente) {
+                    mostrarError('La patente es requerida');
+                    return;
+                }
+                
+                // Mostrar estado de carga
+                const submitButton = document.getElementById('submit-button');
+                const buttonText = document.getElementById('button-text');
+                submitButton.disabled = true;
+                buttonText.innerHTML = '<span class="loading-spinner"></span> Guardando...';
+                
+                // Guardar máquina
+                await agregarMaquina(maquinaData);
+                
+                // Restaurar botón
+                submitButton.disabled = false;
+                buttonText.innerHTML = '<i class="fas fa-save"></i> Guardar Máquina';
+            });
+            
+            // Formulario editar máquina
+            document.getElementById('formEditarMaquina').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                // Obtener datos del formulario
+                const maquinaData = {
+                    id: document.getElementById('edit-id').value,
+                    patente: document.getElementById('edit-patente').value.trim(),
+                    marca: document.getElementById('edit-marca').value.trim(),
+                    modelo: document.getElementById('edit-modelo').value.trim(),
+                    fabricante: document.getElementById('edit-fabricante').value.trim(),
+                    numero_chasis: document.getElementById('edit-numero_chasis').value.trim(),
+                    area: document.getElementById('edit-area').value.trim(),
+                    numero_motor: parseInt(document.getElementById('edit-numero_motor').value) || 0,
+                    anio: parseInt(document.getElementById('edit-anio').value) || new Date().getFullYear(),
+                    observaciones: document.getElementById('edit-observaciones').value.trim()
+                };
+                
+                // Validar patente
+                if (!maquinaData.patente) {
+                    mostrarError('La patente es requerida');
+                    return;
+                }
+                
+                // Mostrar estado de carga
+                const submitButton = document.getElementById('submit-edit-button');
+                const buttonText = document.getElementById('edit-button-text');
+                submitButton.disabled = true;
+                buttonText.innerHTML = '<span class="loading-spinner"></span> Guardando...';
+                
+                // Actualizar máquina
+                await actualizarMaquina(maquinaData);
+                
+                // Restaurar botón
+                submitButton.disabled = false;
+                buttonText.innerHTML = '<i class="fas fa-save"></i> Guardar Cambios';
+            });
+            
+            // Cargar datos iniciales
+            await cargarMaquinas();
+            renderMaquinas();
+        });
+    </script>
+</body>
+</html>

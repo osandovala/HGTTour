@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HGT Tour - Login</title>
+  <style>
+    :root {
+      --color-primary: #3f72af;
+      --color-secondary: #dbe2ef;
+      --color-text: #112d4e;
+      --color-accent: #2c5282;
+      --color-error: #e74c3c;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #3f72af, #dbe2ef);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 380px;
+      padding: 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, #3f72af, #2c5282);
+    }
+    
+    .logo {
+      width: 180px;
+      height: auto;
+      margin: 0 auto 20px;
+      display: block;
+    }
+    
+    h1 {
+      color: var(--color-text);
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+    
+    h2 {
+      color: var(--color-primary);
+      margin-bottom: 25px;
+      font-size: 1.3rem;
+      font-weight: 500;
+    }
+    
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--color-text);
+      font-weight: 500;
+    }
+    
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #dbe2ef;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(63, 114, 175, 0.2);
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px;
+      background: var(--color-primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+    
+    button:hover {
+      background: var(--color-accent);
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+    }
+    
+    .error {
+      color: var(--color-error);
+      margin-top: 15px;
+      font-size: 0.95rem;
+      min-height: 20px;
+    }
+    
+    .footer {
+      margin-top: 25px;
+      color: #6c757d;
+      font-size: 0.9rem;
+    }
+    
+    @media (max-width: 480px) {
+      .container {
+        padding: 25px 20px;
+      }
+      
+      .logo {
+        width: 150px;
+      }
+      
+      h1 {
+        font-size: 1.6rem;
+      }
+      
+      h2 {
+        font-size: 1.1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Logo rectangular sin contenedor circular -->
+    <img src="img/logo.png" alt="Logo HGT Tour" class="logo">
+    
+    <h1>Software de Mantenciones</h1>
+    <h2>Iniciar Sesión</h2>
+    
+    <div class="input-group">
+      <label for="username">Usuario</label>
+      <input type="text" id="username" placeholder="Ingrese su usuario">
+    </div>
+    
+    <div class="input-group">
+      <label for="password">Contraseña</label>
+      <input type="password" id="password" placeholder="Ingrese su contraseña">
+    </div>
+    
+    <button id="loginButton">Entrar</button>
+    <div id="message" class="error"></div>
+    
+    <div class="footer">
+      HGT Tour &copy; 2023 - Todos los derechos reservados
+    </div>
+  </div>
+
+  <script>
+    const usuarioValido = {
+      usuario: "Hugo Muñoz",
+      contraseña: "230304"
+    };
+
+    const loginButton = document.getElementById('loginButton');
+    const messageDiv = document.getElementById('message');
+
+    loginButton.addEventListener('click', () => {
+      const usuarioIngresado = document.getElementById('username').value.trim();
+      const contraseñaIngresada = document.getElementById('password').value.trim();
+
+      if (usuarioIngresado === usuarioValido.usuario && contraseñaIngresada === usuarioValido.contraseña) {
+        // Simular carga
+        loginButton.innerHTML = '<span class="loading">Ingresando...</span>';
+        loginButton.disabled = true;
+        
+        setTimeout(() => {
+          window.location.href = "menu.html";
+        }, 1000);
+      } else {
+        messageDiv.textContent = "Usuario o contraseña incorrectos.";
+        // Efecto de error
+        document.getElementById('username').style.borderColor = '#e74c3c';
+        document.getElementById('password').style.borderColor = '#e74c3c';
+        
+        setTimeout(() => {
+          document.getElementById('username').style.borderColor = '#dbe2ef';
+          document.getElementById('password').style.borderColor = '#dbe2ef';
+        }, 2000);
+      }
+    });
+    
+    // Permitir login con Enter
+    document.getElementById('password').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        loginButton.click();
+      }
+    });
+    
+    // Efecto de carga en el botón
+    const style = document.createElement('style');
+    style.innerHTML = `
+      @keyframes pulse {
+        0% { opacity: 0.6; }
+        50% { opacity: 1; }
+        100% { opacity: 0.6; }
+      }
+      .loading {
+        animation: pulse 1.5s infinite;
+      }
+    `;
+    document.head.appendChild(style);
+  </script>
+</body>
+</html>

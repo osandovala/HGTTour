@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Registro de Mantenimiento por Kilometraje SPRINTER</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --color-primary: #2c5282;
+      --color-secondary: #ebf8ff;
+      --color-accent: #2b6cb0;
+      --color-success: #38a169;
+      --color-error: #e53e3e;
+      --color-warning: #dd6b20;
+      --color-text: #2d3748;
+      --color-light: #f7fafc;
+      --border-radius: 10px;
+      --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(135deg, #e6f7ff 0%, #f0f9ff 100%);
+      font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: start;
+      min-height: 100vh;
+      padding: 20px;
+      color: var(--color-text);
+      line-height: 1.6;
+    }
+
+    .app-container {
+      max-width: 1000px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: var(--color-primary);
+      border-radius: var(--border-radius);
+      color: white;
+      box-shadow: var(--box-shadow);
+    }
+
+    .header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1rem;
+    }
+
+    .form-container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      width: 100%;
+      padding: 35px;
+      margin-bottom: 30px;
+      transition: var(--transition);
+    }
+
+    .form-container:hover {
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+    }
+
+    h2 {
+      text-align: center;
+      color: var(--color-primary);
+      margin-bottom: 25px;
+      font-size: 1.8rem;
+      position: relative;
+      padding-bottom: 15px;
+    }
+
+    h2::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 80px;
+      height: 4px;
+      background: var(--color-primary);
+      border-radius: 2px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 8px;
+      color: var(--color-accent);
+    }
+
+    .required-field::after {
+      content: " *";
+      color: var(--color-error);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e2e8f0;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: var(--transition);
+      background-color: var(--color-light);
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(44, 82, 130, 0.2);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 25px;
+      margin-bottom: 20px;
+    }
+
+    .col {
+      flex: 1;
+      min-width: 250px;
+    }
+
+    .section {
+      border: 2px solid var(--color-secondary);
+      padding: 20px;
+      border-radius: var(--border-radius);
+      margin-top: 25px;
+      background-color: #f8fbff;
+      transition: var(--transition);
+    }
+
+    .section:hover {
+      border-color: var(--color-primary);
+    }
+
+    .section-title {
+      color: var(--color-primary);
+      margin-top: 0;
+      margin-bottom: 20px;
+      font-size: 1.3rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-title i {
+      background: var(--color-primary);
+      color: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+    }
+
+    .radio-group {
+      display: flex;
+      gap: 20px;
+      margin: 12px 0;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--color-light);
+      padding: 8px 15px;
+      border-radius: 30px;
+    }
+
+    .radio-option input[type="radio"] {
+      width: auto;
+      margin-right: 5px;
+    }
+
+    .btn {
+      padding: 14px 28px;
+      border: none;
+      border-radius: var(--border-radius);
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn:active {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+    }
+
+    .btn-primary:hover {
+      background: #1a365d;
+    }
+
+    .btn-secondary {
+      background: #4a5568;
+    }
+
+    .btn-secondary:hover {
+      background: #2d3748;
+    }
+
+    .btn-success {
+      background: var(--color-success);
+    }
+
+    .btn-success:hover {
+      background: #2f855a;
+    }
+
+    .btn-danger {
+      background: var(--color-error);
+    }
+
+    .btn-danger:hover {
+      background: #c53030;
+    }
+
+    .btn-info {
+      background: var(--color-accent);
+    }
+
+    .btn-info:hover {
+      background: #2b6cb0;
+    }
+
+    .btn-sm {
+      padding: 10px 18px;
+      font-size: 0.95rem;
+    }
+
+    .center {
+      text-align: center;
+      margin-top: 35px;
+    }
+
+    .insumos-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .insumos-table th, .insumos-table td {
+      padding: 14px 16px;
+      border: 1px solid #e2e8f0;
+      text-align: left;
+    }
+
+    .insumos-table th {
+      background-color: var(--color-primary);
+      color: white;
+      font-weight: 600;
+    }
+
+    .insumos-table tr:nth-child(even) {
+      background-color: #f7fafc;
+    }
+
+    .insumos-table tr:hover {
+      background-color: #ebf8ff;
+    }
+
+    .add-insumo {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+      align-items: center;
+    }
+
+    .add-insumo input {
+      flex: 1;
+      margin: 0;
+    }
+
+    .status-message {
+      padding: 18px;
+      margin: 20px 0;
+      border-radius: var(--border-radius);
+      text-align: center;
+      display: none;
+      font-weight: 500;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    }
+
+    .error {
+      background-color: #fff5f5;
+      color: var(--color-error);
+      border-left: 5px solid var(--color-error);
+    }
+
+    .success {
+      background-color: #f0fff4;
+      color: var(--color-success);
+      border-left: 5px solid var(--color-success);
+    }
+
+    .pdf-link {
+      margin-top: 15px;
+      display: inline-block;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 30px;
+      flex-wrap: wrap;
+    }
+
+    .today-badge {
+      background: var(--color-primary);
+      color: white;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      margin-left: 8px;
+      font-weight: normal;
+    }
+
+    @media (max-width: 768px) {
+      .row {
+        flex-direction: column;
+        gap: 15px;
+      }
+      
+      .col {
+        min-width: 100%;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .btn-group {
+        flex-direction: column;
+      }
+      
+      .add-insumo {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .form-container {
+        padding: 25px 15px;
+      }
+      
+      .header h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <div class="header">
+      <h1><i class="fas fa-tools"></i> Sistema de Mantenimiento de Vehículos</h1>
+      <p>Registro de Mantenimientos Preventivos por kilometraje</p>
+    </div>
+    
+    <div class="form-container">
+      <h2>Registro de Mantenimiento por Kilometraje SPRINTER</h2>
+      
+      <div id="error-message" class="status-message error" style="display: none;"></div>
+      <div id="success-message" class="status-message success" style="display: none;"></div>
+
+      <div class="row">
+        <div class="col">
+          <label for="fecha">Fecha: <span class="today-badge">HOY</span></label>
+          <input type="date" id="fecha">
+        </div>
+        <div class="col">
+          <label for="hora">Hora:</label>
+          <input type="time" id="hora">
+        </div>
+        <div class="col">
+          <label for="select-maquina" class="required-field">Máquina (Patente):</label>
+          <select id="select-maquina" required>
+            <option value="">Cargando...</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label for="fecha-cierre">Fecha cierre entrega: <span class="today-badge">HOY</span></label>
+          <input type="date" id="fecha-cierre">
+        </div>
+        <div class="col">
+          <label for="kilometraje">Kilometraje:</label>
+          <input type="number" id="kilometraje" value="0" min="0">
+        </div>
+        <div class="col">
+          <label for="tipo-mantenimiento">Tipo de Mantenimiento:</label>
+          <select id="tipo-mantenimiento" onchange="mostrarPdf(this.value)">
+            <option value="">Seleccione...</option>
+            <option value="SM1">SM1</option>
+            <option value="SM2">SM2</option>
+            <option value="SM3">SM3</option>
+            <option value="SM4">SM4</option>
+          </select>
+          <div id="pdf-container" style="display: none; margin-top: 15px;">
+            <button id="descargar-pdf-btn" class="btn btn-info btn-sm">
+              <i class="fas fa-file-pdf"></i> Descargar PDF del Mantenimiento
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 class="section-title"><i class="fas fa-info-circle"></i> Información del Mantenimiento</h3>
+        
+        <div class="row">
+          <div class="col">
+            <label for="responsable">Responsable:</label>
+            <select id="responsable">
+              <option value="">Seleccione</option>
+            </select>
+          </div>
+          <div class="col">
+            <label>¿Realizado?</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" id="realizado-si" name="realizado" value="sí">
+                <label for="realizado-si">Sí</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="realizado-no" name="realizado" value="no" checked>
+                <label for="realizado-no">No</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <label for="descripcion">Descripción de Mantenimiento:</label>
+        <textarea id="descripcion" rows="4" placeholder="Detalles del mantenimiento realizado..."></textarea>
+        
+        <div class="row">
+          <div class="col">
+            <label for="hecho-por">Hecho por:</label>
+            <input type="text" id="hecho-por" value="Hugo Muñoz Sandoval" readonly>
+          </div>
+          <div class="col">
+            <label for="autorizado-por">Autorizado por:</label>
+            <select id="autorizado-por">
+              <option value="">Seleccione</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h3 class="section-title"><i class="fas fa-box-open"></i> Insumos/Materiales</h3>
+        
+        <table class="insumos-table">
+          <thead>
+            <tr>
+              <th>Descripción</th>
+              <th width="120">Cantidad</th>
+              <th width="120">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="insumos-body">
+            <tr>
+              <td colspan="3" style="text-align: center; color: #718096; padding: 20px;">
+                <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+                No hay insumos agregados
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        
+        <div class="add-insumo">
+          <input type="text" id="nuevo-insumo" placeholder="Descripción del insumo (ej: Filtro de aceite)">
+          <input type="number" id="cantidad-insumo" placeholder="Cantidad" min="1" value="1" style="max-width: 120px;">
+          <button class="btn btn-success" onclick="agregarInsumo()">
+            <i class="fas fa-plus"></i> Agregar
+          </button>
+        </div>
+      </div>
+
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="guardarMantenimiento()">
+          <i class="fas fa-save"></i> Guardar Mantenimiento
+        </button>
+        <button class="btn btn-info" onclick="verMantenimientos()">
+          <i class="fas fa-list"></i> Ver Mantenimientos
+        </button>
+        <button class="btn btn-secondary" onclick="location.href='mantenimientos.html'">
+          <i class="fas fa-arrow-left"></i> Volver
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd2pkdmpsZnp0ZXd0bWtyeHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDg0ODEsImV4cCI6MjA2NzIyNDQ4MX0.z0C2PtfkvYwIYfFjnFmdRicn_Jfqyq_SbCHKycHBX-4';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Variables para insumos
+    let insumos = [];
+    let maquinasData = []; // Almacenará los datos de las máquinas
+
+    // Función para establecer fecha y hora actual
+    function setCurrentDateTime() {
+      const now = new Date();
+      
+      // Formatear fecha (YYYY-MM-DD)
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const today = `${year}-${month}-${day}`;
+      
+      // Formatear hora (HH:MM)
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTime = `${hours}:${minutes}`;
+      
+      // Establecer valores en los campos
+      document.getElementById('fecha').value = today;
+      document.getElementById('hora').value = currentTime;
+      document.getElementById('fecha-cierre').value = today;
+    }
+
+    // Mostrar mensaje de error
+    function mostrarError(mensaje) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = mensaje;
+      errorElement.style.display = 'block';
+      
+      setTimeout(() => {
+        errorElement.style.display = 'none';
+      }, 5000);
+    }
+
+    // Mostrar mensaje de éxito
+    function mostrarExito(mensaje) {
+      const successElement = document.getElementById('success-message');
+      successElement.textContent = mensaje;
+      successElement.style.display = 'block';
+      
+      setTimeout(() => {
+        successElement.style.display = 'none';
+      }, 3000);
+    }
+
+    // Mostrar opción para descargar PDF según el tipo de mantenimiento seleccionado
+    function mostrarPdf(tipoMantenimiento) {
+      const pdfContainer = document.getElementById('pdf-container');
+      const descargarPdfBtn = document.getElementById('descargar-pdf-btn');
+      
+      if (tipoMantenimiento) {
+        pdfContainer.style.display = 'block';
+        
+        // Configurar el botón de descarga
+        descargarPdfBtn.onclick = function() {
+          descargarPdf(tipoMantenimiento);
+        };
+      } else {
+        pdfContainer.style.display = 'none';
+      }
+    }
+
+    // Descargar PDF según el tipo de mantenimiento
+    function descargarPdf(tipoMantenimiento) {
+      // Nombre del archivo PDF basado en el tipo de mantenimiento
+      const nombreArchivo = `${tipoMantenimiento}.pdf`;
+      
+      // Crear un enlace temporal para la descarga
+      const link = document.createElement('a');
+      link.href = nombreArchivo;
+      link.download = nombreArchivo;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      mostrarExito(`PDF de ${tipoMantenimiento} descargado correctamente`);
+    }
+
+    // Cargar patentes de máquinas
+    async function cargarPatentes() {
+      const selectMaquina = document.getElementById('select-maquina');
+      const { data, error } = await supabase
+        .from('maquinas')
+        .select('id, patente')
+        .order('patente', { ascending: true });
+
+      if (error) {
+        console.error('Error al cargar patentes:', error.message);
+        mostrarError('Error al cargar las máquinas');
+        selectMaquina.innerHTML = '<option value="">Error al cargar</option>';
+        return;
+      }
+
+      maquinasData = data; // Guardamos los datos de las máquinas
+
+      selectMaquina.innerHTML = '<option value="">Seleccione una máquina</option>';
+      data.forEach(maquina => {
+        const opt = document.createElement('option');
+        opt.value = maquina.id;
+        opt.textContent = maquina.patente;
+        selectMaquina.appendChild(opt);
+      });
+    }
+
+    // Cargar responsables (mecánicos)
+    async function cargarMecanicos() {
+      const selectResponsable = document.getElementById('responsable');
+
+      const { data, error } = await supabase
+        .from('mecanicos')
+        .select('nombre')
+        .order('nombre', { ascending: true });
+
+      if (error) {
+        console.error('Error al cargar mecánicos:', error.message);
+        mostrarError('Error al cargar los mecánicos');
+        selectResponsable.innerHTML = '<option value="">Error al cargar</option>';
+        return;
+      }
+
+      selectResponsable.innerHTML = '<option value="">Seleccione</option>';
+      data.forEach(mecanico => {
+        const opt = document.createElement('option');
+        opt.value = mecanico.nombre;
+        opt.textContent = mecanico.nombre;
+        selectResponsable.appendChild(opt);
+      });
+    }
+
+    // Cargar supervisores para "Autorizado por"
+    async function cargarSupervisores() {
+      const selectAutorizado = document.getElementById('autorizado-por');
+
+      const { data, error } = await supabase
+        .from('supervisores')
+        .select('nombre')
+        .order('nombre', { ascending: true });
+
+      if (error) {
+        console.error('Error al cargar supervisores:', error.message);
+        mostrarError('Error al cargar los supervisores');
+        selectAutorizado.innerHTML = '<option value="">Error al cargar</option>';
+        return;
+      }
+
+      selectAutorizado.innerHTML = '<option value="">Seleccione</option>';
+      data.forEach(supervisor => {
+        const opt = document.createElement('option');
+        opt.value = supervisor.nombre;
+        opt.textContent = supervisor.nombre;
+        selectAutorizado.appendChild(opt);
+      });
+    }
+
+    // Agregar insumo a la tabla
+    function agregarInsumo() {
+      const descripcion = document.getElementById('nuevo-insumo').value.trim();
+      const cantidad = document.getElementById('cantidad-insumo').value;
+
+      if (!descripcion) {
+        mostrarError('Por favor ingrese una descripción para el insumo');
+        return;
+      }
+
+      if (!cantidad || cantidad <= 0) {
+        mostrarError('La cantidad debe ser mayor a cero');
+        return;
+      }
+
+      // Agregar a la lista de insumos
+      insumos.push({
+        descripcion,
+        cantidad: parseInt(cantidad)
+      });
+
+      // Actualizar tabla
+      actualizarTablaInsumos();
+
+      // Limpiar campos
+      document.getElementById('nuevo-insumo').value = '';
+      document.getElementById('cantidad-insumo').value = '1';
+      
+      // Enfocar el campo de insumo
+      document.getElementById('nuevo-insumo').focus();
+    }
+
+    // Actualizar tabla de insumos
+    function actualizarTablaInsumos() {
+      const tbody = document.getElementById('insumos-body');
+      tbody.innerHTML = '';
+
+      if (insumos.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="3" style="text-align: center; color: #718096; padding: 20px;">
+              <i class="fas fa-inbox" style="font-size: 2rem; margin-bottom: 10px; display: block;"></i>
+              No hay insumos agregados
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      insumos.forEach((insumo, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${insumo.descripcion}</td>
+          <td>${insumo.cantidad}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="eliminarInsumo(${index})">
+              <i class="fas fa-trash-alt"></i> Eliminar
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Eliminar insumo
+    function eliminarInsumo(index) {
+      insumos.splice(index, 1);
+      actualizarTablaInsumos();
+    }
+
+    // Función para redirigir a la página de ver mantenimientos
+    function verMantenimientos() {
+      window.location.href = 'listado_mantenimientosKS.html';
+    }
+
+    // Guardar mantenimiento
+    async function guardarMantenimiento() {
+      const maquinaId = document.getElementById('select-maquina').value;
+      const fecha = document.getElementById('fecha').value || null;
+      const hora = document.getElementById('hora').value || null;
+      const fechaCierre = document.getElementById('fecha-cierre').value || null;
+      const kilometraje = document.getElementById('kilometraje').value || 0;
+      const responsable = document.getElementById('responsable').value || null;
+      const realizado = document.querySelector('input[name="realizado"]:checked')?.value || 'no';
+      const descripcion = document.getElementById('descripcion').value || null;
+      const hechoPor = document.getElementById('hecho-por').value || null;
+      const autorizadoPor = document.getElementById('autorizado-por').value || null;
+      const tipoMantenimiento = document.getElementById('tipo-mantenimiento').value || null;
+
+      // Validación básica - solo patente es obligatoria
+      if (!maquinaId) {
+        mostrarError('Seleccione una máquina (patente)');
+        return;
+      }
+
+      try {
+        // Buscar la patente correspondiente al ID seleccionado
+        const { data: maquinaData, error: maquinaError } = await supabase
+          .from('maquinas')
+          .select('patente')
+          .eq('id', maquinaId)
+          .single();
+
+        if (maquinaError || !maquinaData) {
+          throw new Error('No se pudo obtener la patente de la máquina seleccionada');
+        }
+
+        const patente = maquinaData.patente;
+
+        // Insertar el mantenimiento en la tabla mantenimientos
+        const { data, error } = await supabase
+          .from('mantenimientos')
+          .insert([{
+            tipo: 'Kilometraje SPRINTER',
+            tipo_mantenimiento: tipoMantenimiento,
+            maquina_id: maquinaId,
+            patente: patente,
+            fecha: fecha,
+            hora: hora,
+            fecha_cierre: fechaCierre,
+            kilometraje: kilometraje,
+            responsable: responsable,
+            realizado: realizado === 'sí',
+            descripcion: descripcion,
+            hecho_por: hechoPor,
+            autorizado_por: autorizadoPor,
+            insumos: insumos
+          }])
+          .select();
+
+        if (error) throw error;
+
+        mostrarExito('Mantenimiento por kilometraje SPRINTER guardado correctamente');
+        
+        // Limpiar formulario
+        document.getElementById('descripcion').value = '';
+        document.getElementById('tipo-mantenimiento').value = '';
+        insumos = [];
+        actualizarTablaInsumos();
+        document.getElementById('pdf-container').style.display = 'none';
+
+      } catch (error) {
+        console.error('Error al guardar:', error);
+        mostrarError('Error al guardar el mantenimiento: ' + error.message);
+      }
+    }
+
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', () => {
+      // Establecer fecha y hora actual
+      setCurrentDateTime();
+      
+      // Cargar datos
+      cargarPatentes();
+      cargarMecanicos();
+      cargarSupervisores();
+      actualizarTablaInsumos();
+      
+      // Enfocar el primer campo
+      document.getElementById('select-maquina').focus();
+    });
+  </script>
+</body>
+</html>

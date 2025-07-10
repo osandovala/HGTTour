@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Mantenimientos por Kilometraje BUS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --color-primary: #3f72af;
+      --color-secondary: #dbe2ef;
+      --color-text: #112d4e;
+      --color-accent: #2c5282;
+      --color-success: #2ecc71;
+      --color-error: #e74c3c;
+      --color-warning: #f39c12;
+      --border-radius: 8px;
+      --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--color-text);
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: var(--color-primary);
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid var(--color-secondary);
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 5px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent);
+      transform: translateY(-2px);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+    }
+
+    .btn-success {
+      background: var(--color-success);
+    }
+
+    .btn-success:hover {
+      background: #27ae60;
+      transform: translateY(-2px);
+    }
+
+    .btn-danger {
+      background: var(--color-error);
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+      transform: translateY(-2px);
+    }
+
+    .btn-info {
+      background: var(--color-primary);
+    }
+
+    .btn-info:hover {
+      background: var(--color-accent);
+      transform: translateY(-2px);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 10px;
+      margin: 15px 0;
+    }
+
+    .status-message {
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: var(--border-radius);
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: var(--color-error);
+      border-left: 4px solid var(--color-error);
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: var(--color-success);
+      border-left: 4px solid var(--color-success);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      box-shadow: var(--box-shadow);
+      background: white;
+      border-radius: var(--border-radius);
+      overflow: hidden;
+    }
+
+    th, td {
+      padding: 12px 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    th {
+      background-color: var(--color-primary);
+      color: white;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8f9fa;
+    }
+
+    tr:hover {
+      background-color: #e9ecef;
+    }
+
+    .actions-cell {
+      white-space: nowrap;
+    }
+
+    .descripcion-cell {
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .insumos-cell {
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Modal de edición */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 30px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      width: 80%;
+      max-width: 900px;
+      max-height: 80vh;
+      overflow-y: auto;
+      animation: modalopen 0.4s;
+    }
+
+    @keyframes modalopen {
+      from {opacity: 0; transform: translateY(-60px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s;
+    }
+
+    .close:hover {
+      color: var(--color-primary);
+    }
+
+    /* Formulario de edición */
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 5px;
+      color: var(--color-text);
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--color-primary);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(63, 114, 175, 0.2);
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 15px;
+    }
+
+    .col {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .required-field::after {
+      content: " *";
+      color: var(--color-error);
+    }
+
+    /* Header styling */
+    .header-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+    
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    
+    .logo {
+      width: 60px;
+      height: 60px;
+      background: var(--color-primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 24px;
+      font-weight: bold;
+    }
+    
+    .title-container {
+      flex: 1;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-top: -10px;
+      font-size: 1.1rem;
+    }
+    
+    .stats-container {
+      display: flex;
+      gap: 15px;
+      background: white;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    .stat-card {
+      flex: 1;
+      min-width: 150px;
+      text-align: center;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      background: var(--color-secondary);
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--color-primary);
+      margin: 10px 0;
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--color-text);
+    }
+    
+    /* Nuevos estilos para el gráfico */
+    .chart-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin: 20px 0;
+    }
+    
+    .chart-wrapper {
+      flex: 1;
+      min-width: 300px;
+      background: white;
+      padding: 20px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+    
+    .chart-title {
+      text-align: center;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: var(--color-primary);
+      border-bottom: 1px solid var(--color-secondary);
+      padding-bottom: 10px;
+    }
+    
+    .chart-canvas-container {
+      height: 300px;
+      position: relative;
+    }
+    
+    .chart-legend {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 15px;
+    }
+    
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    
+    .legend-color {
+      width: 15px;
+      height: 15px;
+      border-radius: 3px;
+    }
+    
+    .legend-text {
+      font-size: 0.9rem;
+    }
+    
+    .stats-info {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 1.1rem;
+      color: var(--color-accent);
+    }
+    
+    .stats-highlight {
+      font-weight: bold;
+      color: var(--color-primary);
+    }
+
+    /* Filtros */
+    .filters-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin: 20px 0;
+      background: white;
+      padding: 15px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      align-items: center;
+    }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      min-width: 200px;
+    }
+
+    .filter-label {
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--color-text);
+    }
+
+    .filter-select {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 0.9rem;
+    }
+
+    .filter-actions {
+      display: flex;
+      gap: 10px;
+      margin-left: auto;
+    }
+
+    /* Estilo para la columna OT */
+    .ot-cell {
+      font-weight: bold;
+      color: var(--color-primary);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-container">
+      <div class="logo-container">
+        <div class="logo">HGT</div>
+        <div>
+          <h1>Mantenimientos BUS</h1>
+          <div class="subtitle">Sistema de gestión de mantenimientos por kilometraje</div>
+        </div>
+      </div>
+      <div class="btn-group">
+        <button class="btn btn-primary" onclick="window.location.href='crear_kilometraje_bus.html'">
+          <i class="fas fa-plus"></i> Nuevo Mantenimiento
+        </button>
+        <button class="btn btn-secondary" onclick="window.history.back()">
+          <i class="fas fa-arrow-left"></i> Volver
+        </button>
+      </div>
+    </div>
+    
+    <div class="stats-container">
+      <div class="stat-card">
+        <div class="stat-label">Mantenimientos Totales</div>
+        <div class="stat-value" id="total-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Realizados</div>
+        <div class="stat-value" id="completed-count">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pendientes</div>
+        <div class="stat-value" id="pending-count">0</div>
+      </div>
+    </div>
+
+    <!-- Sección de filtros -->
+    <div class="filters-container">
+      <div class="filter-group">
+        <label for="filter-patente" class="filter-label">Filtrar por Patente:</label>
+        <select id="filter-patente" class="filter-select">
+          <option value="">Todas las patentes</option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label for="filter-estado" class="filter-label">Filtrar por Estado:</label>
+        <select id="filter-estado" class="filter-select">
+          <option value="">Todos los estados</option>
+          <option value="realizado">Realizados</option>
+          <option value="pendiente">Pendientes</option>
+        </select>
+      </div>
+      
+      <div class="filter-actions">
+        <button class="btn btn-primary" onclick="aplicarFiltros()">
+          <i class="fas fa-filter"></i> Aplicar Filtros
+        </button>
+        <button class="btn btn-secondary" onclick="limpiarFiltros()">
+          <i class="fas fa-times"></i> Limpiar
+        </button>
+      </div>
+    </div>
+
+    <!-- Sección del gráfico circular -->
+    <div class="chart-container">
+      <div class="chart-wrapper">
+        <div class="chart-title">Distribución de Mantenimientos</div>
+        <div class="chart-canvas-container">
+          <canvas id="stats-chart"></canvas>
+        </div>
+        <div class="chart-legend" id="chart-legend">
+          <!-- La leyenda se generará automáticamente con JavaScript -->
+        </div>
+        <div class="stats-info">
+          <span class="stats-highlight" id="completed-percent">0%</span> completados
+          | <span class="stats-highlight" id="pending-percent">0%</span> pendientes
+        </div>
+      </div>
+    </div>
+
+    <div id="error-message" class="status-message error" style="display: none;"></div>
+    <div id="success-message" class="status-message success" style="display: none;"></div>
+
+    <table id="mantenimientos-table">
+      <thead>
+        <tr>
+          <th>OT</th>
+          <th>Patente</th>
+          <th>Fecha</th>
+          <th>Kilometraje</th>
+          <th>Tipo</th>
+          <th>Responsable</th>
+          <th>Realizado</th>
+          <th>Descripción</th>
+          <th>Insumos</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="mantenimientos-body">
+        <!-- Datos se cargarán aquí -->
+      </tbody>
+    </table>
+
+    <!-- Modal para editar mantenimiento -->
+    <div id="editModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="cerrarModal()">&times;</span>
+        <h2>Editar Mantenimiento BUS</h2>
+        
+        <form id="edit-form">
+          <input type="hidden" id="edit-id">
+          
+          <div class="row">
+            <div class="col">
+              <label for="edit-patente" class="required-field">Patente:</label>
+              <select id="edit-patente" required></select>
+            </div>
+            <div class="col">
+              <label for="edit-fecha">Fecha:</label>
+              <input type="date" id="edit-fecha">
+            </div>
+            <div class="col">
+              <label for="edit-fecha-cierre">Fecha cierre entrega:</label>
+              <input type="date" id="edit-fecha-cierre">
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col">
+              <label for="edit-kilometraje">Kilometraje:</label>
+              <input type="number" id="edit-kilometraje" min="0">
+            </div>
+            <div class="col">
+              <label for="edit-tipo">Tipo de Mantenimiento:</label>
+              <select id="edit-tipo">
+                <option value="">Seleccione...</option>
+                <option value="Servicio SM1">Servicio SM1</option>
+                <option value="Servicio SM2">Servicio SM2</option>
+                <option value="Servicio SM3">Servicio SM3</option>
+                <option value="Servicio SM4">Servicio SM4</option>
+		<option value="Servicio SM5">Servicio SM5</option>
+              </select>
+            </div>
+            <div class="col">
+              <label for="edit-responsable">Responsable:</label>
+              <select id="edit-responsable"></select>
+            </div>
+          </div>
+          
+          <div class="row">
+            <div class="col">
+              <label>Realizado</label>
+              <div style="display: flex; gap: 15px; margin-top: 5px;">
+                <label><input type="radio" name="edit-realizado" value="true"> Sí</label>
+                <label><input type="radio" name="edit-realizado" value="false"> No</label>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-descripcion">Descripción:</label>
+            <textarea id="edit-descripcion" rows="4"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-hecho-por">Hecho por:</label>
+            <input type="text" id="edit-hecho-por">
+          </div>
+          
+          <div class="form-group">
+            <label for="edit-autorizado-por">Autorizado por:</label>
+            <select id="edit-autorizado-por"></select>
+          </div>
+          
+          <h3>Insumos/Materiales</h3>
+          <table class="orden-table" id="edit-insumos-table">
+            <thead>
+              <tr>
+                <th>Descripción</th>
+                <th>Cantidad</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="edit-insumos-body"></tbody>
+          </table>
+          
+          <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <input type="text" id="nuevo-insumo-edit" placeholder="Descripción del insumo" style="flex: 1;">
+            <input type="number" id="cantidad-insumo-edit" placeholder="Cantidad" min="1" value="1" style="width: 100px;">
+            <button type="button" class="btn btn-success btn-sm" onclick="agregarInsumoEdit()">
+              <i class="fas fa-plus"></i> Agregar
+            </button>
+          </div>
+          
+          <div class="btn-group" style="margin-top: 20px;">
+            <button type="button" class="btn btn-primary" onclick="guardarEdicion()">
+              <i class="fas fa-save"></i> Guardar Cambios
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="cerrarModal()">
+              <i class="fas fa-times"></i> Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd2pkdmpsZnp0ZXd0bWtyeHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDg0ODEsImV4cCI6MjA2NzIyNDQ4MX0.z0C2PtfkvYwIYfFjnFmdRicn_Jfqyq_SbCHKycHBX-4';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    let mantenimientos = [];
+    let maquinasData = [];
+    let mecanicosData = [];
+    let supervisoresData = [];
+    let insumosEdit = [];
+    let statsChart = null;
+    let patentesUnicas = [];
+
+    // Formatear fecha a YYYY-MM-DD HH:MM:SS
+    function formatDateTime(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      const hours = String(date.getHours()).padStart(2, '0');
+      const minutes = String(date.getMinutes()).padStart(2, '0');
+      const seconds = String(date.getSeconds()).padStart(2, '0');
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    // Formatear fecha a DD-MM-YYYY
+    function formatDate(dateString) {
+      if (!dateString) return '';
+      const date = new Date(dateString);
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}-${month}-${year}`;
+    }
+
+    // Mostrar mensaje de error
+    function mostrarError(mensaje) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = mensaje;
+      errorElement.style.display = 'block';
+      
+      setTimeout(() => {
+        errorElement.style.display = 'none';
+      }, 5000);
+    }
+
+    // Mostrar mensaje de éxito
+    function mostrarExito(mensaje) {
+      const successElement = document.getElementById('success-message');
+      successElement.textContent = mensaje;
+      successElement.style.display = 'block';
+      
+      setTimeout(() => {
+        successElement.style.display = 'none';
+      }, 3000);
+    }
+
+    // Cargar mantenimientos desde Supabase
+    async function cargarMantenimientos() {
+      try {
+        const { data, error } = await supabase
+          .from('mantenimientos')
+          .select('*')
+          .eq('tipo', 'Kilometraje Bus')
+          .order('id', { ascending: false }); // Ordenar por ID de mayor a menor
+
+        if (error) throw error;
+
+        mantenimientos = data;
+        actualizarListaPatentes();
+        mostrarMantenimientos();
+        actualizarEstadisticas();
+      } catch (error) {
+        console.error('Error al cargar mantenimientos:', error);
+        mostrarError('Error al cargar los mantenimientos: ' + error.message);
+      }
+    }
+
+    // Actualizar lista de patentes únicas para el filtro
+    function actualizarListaPatentes() {
+      patentesUnicas = [...new Set(mantenimientos.map(m => m.patente))].filter(p => p);
+      patentesUnicas.sort();
+      
+      const selectPatentes = document.getElementById('filter-patente');
+      selectPatentes.innerHTML = '<option value="">Todas las patentes</option>';
+      
+      patentesUnicas.forEach(patente => {
+        const option = document.createElement('option');
+        option.value = patente;
+        option.textContent = patente;
+        selectPatentes.appendChild(option);
+      });
+    }
+
+    // Aplicar filtros seleccionados
+    function aplicarFiltros() {
+      const patenteSeleccionada = document.getElementById('filter-patente').value;
+      const estadoSeleccionado = document.getElementById('filter-estado').value;
+      
+      let mantenimientosFiltrados = [...mantenimientos];
+      
+      // Filtrar por patente
+      if (patenteSeleccionada) {
+        mantenimientosFiltrados = mantenimientosFiltrados.filter(m => m.patente === patenteSeleccionada);
+      }
+      
+      // Filtrar por estado
+      if (estadoSeleccionado === 'realizado') {
+        mantenimientosFiltrados = mantenimientosFiltrados.filter(m => m.realizado);
+      } else if (estadoSeleccionado === 'pendiente') {
+        mantenimientosFiltrados = mantenimientosFiltrados.filter(m => !m.realizado);
+      }
+      
+      mostrarMantenimientosFiltrados(mantenimientosFiltrados);
+      actualizarEstadisticasFiltradas(mantenimientosFiltrados);
+    }
+
+    // Limpiar filtros
+    function limpiarFiltros() {
+      document.getElementById('filter-patente').value = '';
+      document.getElementById('filter-estado').value = '';
+      mostrarMantenimientos();
+      actualizarEstadisticas();
+    }
+
+    // Mostrar mantenimientos filtrados
+    function mostrarMantenimientosFiltrados(mantenimientosFiltrados) {
+      const tbody = document.getElementById('mantenimientos-body');
+      tbody.innerHTML = '';
+
+      if (mantenimientosFiltrados.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No hay mantenimientos que coincidan con los filtros</td></tr>';
+        return;
+      }
+
+      mantenimientosFiltrados.forEach(mantenimiento => {
+        const descripcion = mantenimiento.descripcion || 'Sin descripción';
+        const insumos = mantenimiento.insumos ? 
+          mantenimiento.insumos.map(i => `${i.descripcion} (${i.cantidad})`).join(', ') : 
+          'Sin insumos';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="ot-cell">${mantenimiento.id}</td>
+          <td>${mantenimiento.patente || ''}</td>
+          <td>${formatDate(mantenimiento.fecha)}</td>
+          <td>${mantenimiento.kilometraje ? mantenimiento.kilometraje.toLocaleString() : '0'}</td>
+          <td>${mantenimiento.tipo_mantenimiento || ''}</td>
+          <td>${mantenimiento.responsable || ''}</td>
+          <td>${mantenimiento.realizado ? 'Sí' : 'No'}</td>
+          <td class="descripcion-cell" title="${descripcion}">${descripcion.substring(0, 30)}${descripcion.length > 30 ? '...' : ''}</td>
+          <td class="insumos-cell" title="${insumos}">${insumos.substring(0, 20)}${insumos.length > 20 ? '...' : ''}</td>
+          <td class="actions-cell">
+            <button class="btn btn-info btn-sm" onclick="editarMantenimiento(${mantenimiento.id})">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+            <button class="btn btn-success btn-sm" onclick="imprimirOrden(${mantenimiento.id})">
+              <i class="fas fa-print"></i> Imprimir
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Actualizar estadísticas con los datos filtrados
+    function actualizarEstadisticasFiltradas(mantenimientosFiltrados) {
+      const total = mantenimientosFiltrados.length;
+      const completados = mantenimientosFiltrados.filter(m => m.realizado).length;
+      const pendientes = total - completados;
+      
+      document.getElementById('total-count').textContent = total;
+      document.getElementById('completed-count').textContent = completados;
+      document.getElementById('pending-count').textContent = pendientes;
+      
+      // Calcular porcentajes
+      const completadosPercent = total > 0 ? Math.round((completados / total) * 100) : 0;
+      const pendientesPercent = total > 0 ? Math.round((pendientes / total) * 100) : 0;
+      
+      document.getElementById('completed-percent').textContent = `${completadosPercent}%`;
+      document.getElementById('pending-percent').textContent = `${pendientesPercent}%`;
+      
+      // Actualizar o crear el gráfico circular
+      actualizarGrafico(completados, pendientes, total);
+    }
+
+    // Actualizar estadísticas y gráfico
+    function actualizarEstadisticas() {
+      const total = mantenimientos.length;
+      const completados = mantenimientos.filter(m => m.realizado).length;
+      const pendientes = total - completados;
+      
+      document.getElementById('total-count').textContent = total;
+      document.getElementById('completed-count').textContent = completados;
+      document.getElementById('pending-count').textContent = pendientes;
+      
+      // Calcular porcentajes
+      const completadosPercent = total > 0 ? Math.round((completados / total) * 100) : 0;
+      const pendientesPercent = total > 0 ? Math.round((pendientes / total) * 100) : 0;
+      
+      document.getElementById('completed-percent').textContent = `${completadosPercent}%`;
+      document.getElementById('pending-percent').textContent = `${pendientesPercent}%`;
+      
+      // Actualizar o crear el gráfico circular
+      actualizarGrafico(completados, pendientes, total);
+    }
+
+    // Actualizar el gráfico circular
+    function actualizarGrafico(completados, pendientes, total) {
+      const ctx = document.getElementById('stats-chart').getContext('2d');
+      
+      // Destruir el gráfico anterior si existe
+      if (statsChart) {
+        statsChart.destroy();
+      }
+      
+      // Crear nuevo gráfico
+      statsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Realizados', 'Pendientes'],
+          datasets: [{
+            data: [completados, pendientes],
+            backgroundColor: [
+              'rgba(46, 204, 113, 0.8)', // Verde para completados
+              'rgba(231, 76, 60, 0.8)'   // Rojo para pendientes
+            ],
+            borderColor: [
+              'rgba(46, 204, 113, 1)',
+              'rgba(231, 76, 60, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.label || '';
+                  const value = context.raw || 0;
+                  const percentage = Math.round((value / total) * 100);
+                  return `${label}: ${value} (${percentage}%)`;
+                }
+              }
+            }
+          }
+        }
+      });
+      
+      // Actualizar leyenda
+      const legendHtml = `
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: rgba(46, 204, 113, 0.8);"></div>
+          <div class="legend-text">Realizados: ${completados}</div>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: rgba(231, 76, 60, 0.8);"></div>
+          <div class="legend-text">Pendientes: ${pendientes}</div>
+        </div>
+      `;
+      document.getElementById('chart-legend').innerHTML = legendHtml;
+    }
+
+    // Mostrar mantenimientos en la tabla
+    function mostrarMantenimientos() {
+      const tbody = document.getElementById('mantenimientos-body');
+      tbody.innerHTML = '';
+
+      if (mantenimientos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center;">No hay mantenimientos registrados</td></tr>';
+        return;
+      }
+
+      mantenimientos.forEach(mantenimiento => {
+        const descripcion = mantenimiento.descripcion || 'Sin descripción';
+        const insumos = mantenimiento.insumos ? 
+          mantenimiento.insumos.map(i => `${i.descripcion} (${i.cantidad})`).join(', ') : 
+          'Sin insumos';
+        
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="ot-cell">${mantenimiento.id}</td>
+          <td>${mantenimiento.patente || ''}</td>
+          <td>${formatDate(mantenimiento.fecha)}</td>
+          <td>${mantenimiento.kilometraje ? mantenimiento.kilometraje.toLocaleString() : '0'}</td>
+          <td>${mantenimiento.tipo_mantenimiento || ''}</td>
+          <td>${mantenimiento.responsable || ''}</td>
+          <td>${mantenimiento.realizado ? 'Sí' : 'No'}</td>
+          <td class="descripcion-cell" title="${descripcion}">${descripcion.substring(0, 30)}${descripcion.length > 30 ? '...' : ''}</td>
+          <td class="insumos-cell" title="${insumos}">${insumos.substring(0, 20)}${insumos.length > 20 ? '...' : ''}</td>
+          <td class="actions-cell">
+            <button class="btn btn-info btn-sm" onclick="editarMantenimiento(${mantenimiento.id})">
+              <i class="fas fa-edit"></i> Editar
+            </button>
+            <button class="btn btn-success btn-sm" onclick="imprimirOrden(${mantenimiento.id})">
+              <i class="fas fa-print"></i> Imprimir
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Cargar datos necesarios para edición
+    async function cargarDatosParaEdicion() {
+      try {
+        // Cargar máquinas (patentes)
+        const { data: maquinas, error: errorMaquinas } = await supabase
+          .from('maquinas')
+          .select('id, patente, modelo, marca, fabricante')
+          .order('patente', { ascending: true });
+
+        if (errorMaquinas) throw errorMaquinas;
+        maquinasData = maquinas;
+
+        // Cargar mecánicos (responsables)
+        const { data: mecanicos, error: errorMecanicos } = await supabase
+          .from('mecanicos')
+          .select('nombre')
+          .order('nombre', { ascending: true });
+
+        if (errorMecanicos) throw errorMecanicos;
+        mecanicosData = mecanicos;
+
+        // Cargar supervisores (autorizados por)
+        const { data: supervisores, error: errorSupervisores } = await supabase
+          .from('supervisores')
+          .select('nombre')
+          .order('nombre', { ascending: true });
+
+        if (errorSupervisores) throw errorSupervisores;
+        supervisoresData = supervisores;
+
+        return true;
+      } catch (error) {
+        console.error('Error al cargar datos para edición:', error);
+        mostrarError('Error al cargar datos necesarios para edición');
+        return false;
+      }
+    }
+
+    // Abrir modal para editar mantenimiento
+    async function editarMantenimiento(id) {
+      const cargado = await cargarDatosParaEdicion();
+      if (!cargado) return;
+
+      const mantenimiento = mantenimientos.find(m => m.id === id);
+      if (!mantenimiento) {
+        mostrarError('No se encontró el mantenimiento seleccionado');
+        return;
+      }
+
+      // Llenar selects
+      const selectPatente = document.getElementById('edit-patente');
+      selectPatente.innerHTML = '<option value="">Seleccione una patente</option>';
+      maquinasData.forEach(maquina => {
+        const opt = document.createElement('option');
+        opt.value = maquina.id;
+        opt.textContent = maquina.patente;
+        opt.selected = maquina.id === mantenimiento.maquina_id;
+        selectPatente.appendChild(opt);
+      });
+
+      const selectResponsable = document.getElementById('edit-responsable');
+      selectResponsable.innerHTML = '<option value="">Seleccione</option>';
+      mecanicosData.forEach(mecanico => {
+        const opt = document.createElement('option');
+        opt.value = mecanico.nombre;
+        opt.textContent = mecanico.nombre;
+        opt.selected = mecanico.nombre === mantenimiento.responsable;
+        selectResponsable.appendChild(opt);
+      });
+
+      const selectAutorizado = document.getElementById('edit-autorizado-por');
+      selectAutorizado.innerHTML = '<option value="">Seleccione</option>';
+      supervisoresData.forEach(supervisor => {
+        const opt = document.createElement('option');
+        opt.value = supervisor.nombre;
+        opt.textContent = supervisor.nombre;
+        opt.selected = supervisor.nombre === mantenimiento.autorizado_por;
+        selectAutorizado.appendChild(opt);
+      });
+
+      // Llenar otros campos
+      document.getElementById('edit-id').value = mantenimiento.id;
+      document.getElementById('edit-fecha').value = mantenimiento.fecha || '';
+      document.getElementById('edit-fecha-cierre').value = mantenimiento.fecha_cierre || '';
+      document.getElementById('edit-kilometraje').value = mantenimiento.kilometraje || 0;
+      document.getElementById('edit-tipo').value = mantenimiento.tipo_mantenimiento || '';
+      document.getElementById('edit-descripcion').value = mantenimiento.descripcion || '';
+      document.getElementById('edit-hecho-por').value = mantenimiento.hecho_por || '';
+
+      // Radio button de realizado
+      const realizadoSi = document.querySelector('input[name="edit-realizado"][value="true"]');
+      const realizadoNo = document.querySelector('input[name="edit-realizado"][value="false"]');
+      if (mantenimiento.realizado) {
+        realizadoSi.checked = true;
+      } else {
+        realizadoNo.checked = true;
+      }
+
+      // Llenar insumos
+      insumosEdit = mantenimiento.insumos || [];
+      actualizarTablaInsumosEdit();
+
+      // Mostrar modal
+      document.getElementById('editModal').style.display = 'block';
+    }
+
+    // Cerrar modal de edición
+    function cerrarModal() {
+      document.getElementById('editModal').style.display = 'none';
+    }
+
+    // Actualizar tabla de insumos en el modal de edición
+    function actualizarTablaInsumosEdit() {
+      const tbody = document.getElementById('edit-insumos-body');
+      tbody.innerHTML = '';
+
+      if (insumosEdit.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" style="text-align: center;">No hay insumos</td></tr>';
+        return;
+      }
+
+      insumosEdit.forEach((insumo, index) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${insumo.descripcion}</td>
+          <td>${insumo.cantidad}</td>
+          <td>
+            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarInsumoEdit(${index})">
+              <i class="fas fa-trash-alt"></i> Eliminar
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // Agregar insumo en el modal de edición
+    function agregarInsumoEdit() {
+      const descripcion = document.getElementById('nuevo-insumo-edit').value.trim();
+      const cantidad = document.getElementById('cantidad-insumo-edit').value;
+
+      if (!descripcion) {
+        mostrarError('Por favor ingrese una descripción para el insumo');
+        return;
+      }
+
+      if (!cantidad || cantidad <= 0) {
+        mostrarError('La cantidad debe ser mayor a cero');
+        return;
+      }
+
+      insumosEdit.push({
+        descripcion,
+        cantidad: parseInt(cantidad)
+      });
+
+      actualizarTablaInsumosEdit();
+      document.getElementById('nuevo-insumo-edit').value = '';
+      document.getElementById('cantidad-insumo-edit').value = '1';
+    }
+
+    // Eliminar insumo en el modal de edición
+    function eliminarInsumoEdit(index) {
+      insumosEdit.splice(index, 1);
+      actualizarTablaInsumosEdit();
+    }
+
+    // Guardar cambios después de editar
+    async function guardarEdicion() {
+      const id = document.getElementById('edit-id').value;
+      const maquinaId = document.getElementById('edit-patente').value;
+      const fecha = document.getElementById('edit-fecha').value || null;
+      const fechaCierre = document.getElementById('edit-fecha-cierre').value || null;
+      const kilometraje = document.getElementById('edit-kilometraje').value || 0;
+      const tipo = document.getElementById('edit-tipo').value || null;
+      const responsable = document.getElementById('edit-responsable').value || null;
+      const realizado = document.querySelector('input[name="edit-realizado"]:checked')?.value === 'true';
+      const descripcion = document.getElementById('edit-descripcion').value || null;
+      const hechoPor = document.getElementById('edit-hecho-por').value || null;
+      const autorizadoPor = document.getElementById('edit-autorizado-por').value || null;
+
+      if (!maquinaId) {
+        mostrarError('Seleccione una patente');
+        return;
+      }
+
+      try {
+        // Buscar la patente correspondiente al ID seleccionado
+        const { data: maquinaData, error: maquinaError } = await supabase
+          .from('maquinas')
+          .select('patente')
+          .eq('id', maquinaId)
+          .single();
+
+        if (maquinaError || !maquinaData) {
+          throw new Error('No se pudo obtener la patente de la máquina seleccionada');
+        }
+
+        const patente = maquinaData.patente;
+
+        const { data, error } = await supabase
+          .from('mantenimientos')
+          .update({
+            maquina_id: maquinaId,
+            patente: patente,
+            fecha: fecha,
+            fecha_cierre: fechaCierre,
+            kilometraje: kilometraje,
+            tipo_mantenimiento: tipo,
+            responsable: responsable,
+            realizado: realizado,
+            descripcion: descripcion,
+            hecho_por: hechoPor,
+            autorizado_por: autorizadoPor,
+            insumos: insumosEdit
+          })
+          .eq('id', id)
+          .select();
+
+        if (error) throw error;
+
+        mostrarExito('Mantenimiento actualizado correctamente');
+        cerrarModal();
+        cargarMantenimientos();
+      } catch (error) {
+        console.error('Error al actualizar mantenimiento:', error);
+        mostrarError('Error al actualizar el mantenimiento: ' + error.message);
+      }
+    }
+
+    // Función para imprimir orden (modificada para abrir imprimirKS.html)
+    async function imprimirOrden(id) {
+      window.location.href = `imprimirKS.html?id=${id}`;
+    }
+
+    // Inicializar la página
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarMantenimientos();
+      
+      // Crear un gráfico vacío inicialmente
+      const ctx = document.getElementById('stats-chart').getContext('2d');
+      statsChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Realizados', 'Pendientes'],
+          datasets: [{
+            data: [0, 0],
+            backgroundColor: [
+              'rgba(46, 204, 113, 0.8)',
+              'rgba(231, 76, 60, 0.8)'
+            ],
+            borderColor: [
+              'rgba(46, 204, 113, 1)',
+              'rgba(231, 76, 60, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '65%',
+          plugins: {
+            legend: {
+              display: false
+            }
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

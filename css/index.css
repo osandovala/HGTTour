@@ -1,0 +1,109 @@
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(to bottom right, #e6f0ff, #ffffff);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Contenedores */
+.container, .menu-container {
+  background-color: #ffffff;
+  padding: 40px 30px;
+  border-radius: 20px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  width: 90%;
+  max-width: 350px;
+}
+
+h2 {
+  color: #3b5998;
+  margin-bottom: 20px;
+}
+
+/* Inputs */
+input[type="text"], input[type="password"] {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0;
+  border: 1px solid #ccd6dd;
+  border-radius: 10px;
+  font-size: 15px;
+  transition: border 0.3s;
+}
+
+input:focus {
+  border-color: #74b9ff;
+  outline: none;
+}
+
+/* Botones */
+button {
+  width: 100%;
+  padding: 14px;
+  margin-top: 10px;
+  background-color: #74b9ff;
+  color: #ffffff;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+button:hover {
+  background-color: #0984e3;
+}
+
+/* Mensaje de error */
+.error-msg {
+  color: #d63031;
+  margin-top: 10px;
+  font-size: 14px;
+}
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.menu-grid button {
+  background-color: #dfefff;
+  color: #2d3436;
+  border: none;
+  border-radius: 12px;
+  padding: 20px 10px;
+  font-size: 15px;
+  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: background 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.menu-grid button:hover {
+  background-color: #b2bec3;
+  color: white;
+}
+
+.menu-grid i {
+  font-size: 24px;
+  margin-bottom: 8px;
+  color: #0984e3;
+}
+
+.menu-grid button:hover i {
+  color: white;
+}

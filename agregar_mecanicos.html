@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Gestión de Personal - HGT Tour</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --color-primary: #3f72af;
+      --color-secondary: #dbe2ef;
+      --color-text: #112d4e;
+      --color-accent: #2c5282;
+      --color-success: #2ecc71;
+      --color-danger: #e74c3c;
+      --color-warning: #f39c12;
+      --border-radius: 8px;
+      --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background-color: #f5f7fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      max-width: 800px;
+      width: 100%;
+      padding: 30px;
+    }
+
+    h1 {
+      color: var(--color-primary);
+      text-align: center;
+      margin-bottom: 25px;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--color-secondary);
+      margin-bottom: 20px;
+    }
+
+    .tab {
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      border-bottom: 3px solid var(--color-primary);
+      color: var(--color-primary);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    label {
+      font-weight: 600;
+      display: block;
+      margin-top: 15px;
+      margin-bottom: 5px;
+      color: var(--color-text);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: var(--border-radius);
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: var(--color-primary);
+      box-shadow: 0 0 0 3px rgba(63, 114, 175, 0.2);
+    }
+
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin-top: 20px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: var(--border-radius);
+      color: white;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--color-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--color-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+    }
+
+    .btn-secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-success {
+      background: var(--color-success);
+    }
+
+    .btn-success:hover {
+      background: #27ae60;
+    }
+
+    .btn-danger {
+      background: var(--color-danger);
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+
+    .btn-sm {
+      padding: 8px 15px;
+      font-size: 0.9rem;
+    }
+
+    .person-list {
+      margin-top: 30px;
+    }
+
+    .person-item {
+      background-color: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform 0.3s;
+    }
+
+    .person-item:hover {
+      transform: translateY(-3px);
+    }
+
+    .person-info {
+      flex: 1;
+    }
+
+    .person-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .status-message {
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: var(--border-radius);
+      text-align: center;
+      display: none;
+    }
+
+    .error {
+      background-color: #f8d7da;
+      color: var(--color-danger);
+      border-left: 4px solid var(--color-danger);
+    }
+
+    .success {
+      background-color: #d4edda;
+      color: var(--color-success);
+      border-left: 4px solid var(--color-success);
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      
+      .person-item {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .person-actions {
+        width: 100%;
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Gestión de Personal</h1>
+    
+    <div id="error-message" class="status-message error" style="display: none;"></div>
+    <div id="success-message" class="status-message success" style="display: none;"></div>
+
+    <div class="tabs">
+      <div class="tab active" onclick="cambiarTab('mecanicos')">Mecánicos</div>
+      <div class="tab" onclick="cambiarTab('supervisores')">Supervisores</div>
+    </div>
+
+    <!-- Tab Mecánicos -->
+    <div id="mecanicos-tab" class="tab-content active">
+      <h2>Agregar Mecánico</h2>
+      
+      <label for="nombre-mecanico">Nombre del Mecánico:</label>
+      <input type="text" id="nombre-mecanico" placeholder="Ej: Juan Pérez">
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="guardarMecanico()">
+          <i class="fas fa-save"></i> Guardar Mecánico
+        </button>
+        <a href="menu.html" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Volver
+        </a>
+      </div>
+
+      <div class="person-list">
+        <h3>Mecánicos Registrados</h3>
+        <div id="lista-mecanicos"></div>
+      </div>
+    </div>
+
+    <!-- Tab Supervisores -->
+    <div id="supervisores-tab" class="tab-content">
+      <h2>Agregar Supervisor</h2>
+      
+      <label for="nombre-supervisor">Nombre del Supervisor:</label>
+      <input type="text" id="nombre-supervisor" placeholder="Ej: Carlos López">
+
+      <div class="button-group">
+        <button class="btn btn-primary" onclick="guardarSupervisor()">
+          <i class="fas fa-save"></i> Guardar Supervisor
+        </button>
+        <a href="mantenimientos.html" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Volver
+        </a>
+      </div>
+
+      <div class="person-list">
+        <h3>Supervisores Registrados</h3>
+        <div id="lista-supervisores"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Configuración de Supabase
+    const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd2pkdmpsZnp0ZXd0bWtyeHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDg0ODEsImV4cCI6MjA2NzIyNDQ4MX0.z0C2PtfkvYwIYfFjnFmdRicn_Jfqyq_SbCHKycHBX-4';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Variables de estado
+    let currentTab = 'mecanicos';
+
+    // Mostrar mensaje de error
+    function mostrarError(mensaje) {
+      const errorElement = document.getElementById('error-message');
+      errorElement.textContent = mensaje;
+      errorElement.style.display = 'block';
+      
+      setTimeout(() => {
+        errorElement.style.display = 'none';
+      }, 5000);
+    }
+
+    // Mostrar mensaje de éxito
+    function mostrarExito(mensaje) {
+      const successElement = document.getElementById('success-message');
+      successElement.textContent = mensaje;
+      successElement.style.display = 'block';
+      
+      setTimeout(() => {
+        successElement.style.display = 'none';
+      }, 3000);
+    }
+
+    // Cambiar entre pestañas
+    function cambiarTab(tab) {
+      currentTab = tab;
+      
+      // Actualizar pestañas activas
+      document.querySelectorAll('.tab').forEach(t => {
+        t.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-content').forEach(c => {
+        c.classList.remove('active');
+      });
+      
+      // Activar la pestaña seleccionada
+      document.querySelector(`.tab[onclick="cambiarTab('${tab}')"]`).classList.add('active');
+      document.getElementById(`${tab}-tab`).classList.add('active');
+    }
+
+    // Guardar nuevo mecánico
+    async function guardarMecanico() {
+      const nombre = document.getElementById("nombre-mecanico").value.trim();
+      
+      if (!nombre) {
+        mostrarError("Por favor, ingresa un nombre válido.");
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from("mecanicos")
+          .insert([{ nombre: nombre }]);
+
+        if (error) throw error;
+
+        mostrarExito("Mecánico guardado correctamente");
+        document.getElementById("nombre-mecanico").value = "";
+        cargarMecanicos();
+      } catch (error) {
+        console.error("Error al guardar mecánico:", error);
+        mostrarError("Error al guardar el mecánico: " + error.message);
+      }
+    }
+
+    // Guardar nuevo supervisor
+    async function guardarSupervisor() {
+      const nombre = document.getElementById("nombre-supervisor").value.trim();
+      
+      if (!nombre) {
+        mostrarError("Por favor, ingresa un nombre válido.");
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from("supervisores")
+          .insert([{ nombre: nombre }]);
+
+        if (error) throw error;
+
+        mostrarExito("Supervisor guardado correctamente");
+        document.getElementById("nombre-supervisor").value = "";
+        cargarSupervisores();
+      } catch (error) {
+        console.error("Error al guardar supervisor:", error);
+        mostrarError("Error al guardar el supervisor: " + error.message);
+      }
+    }
+
+    // Cargar mecánicos desde Supabase
+    async function cargarMecanicos() {
+      const lista = document.getElementById("lista-mecanicos");
+      lista.innerHTML = "<p>Cargando mecánicos...</p>";
+
+      try {
+        const { data, error } = await supabase
+          .from("mecanicos")
+          .select("*")
+          .order("nombre", { ascending: true });
+
+        if (error) throw error;
+
+        lista.innerHTML = "";
+
+        if (data.length === 0) {
+          lista.innerHTML = "<p>No hay mecánicos registrados</p>";
+          return;
+        }
+
+        data.forEach(mecanico => {
+          const item = document.createElement("div");
+          item.className = "person-item";
+          
+          const infoDiv = document.createElement("div");
+          infoDiv.className = "person-info";
+          infoDiv.innerHTML = `<h4>${mecanico.nombre}</h4>`;
+          
+          const actionsDiv = document.createElement("div");
+          actionsDiv.className = "person-actions";
+          
+          const editButton = document.createElement("button");
+          editButton.className = "btn btn-success btn-sm";
+          editButton.innerHTML = '<i class="fas fa-edit"></i> Editar';
+          editButton.onclick = () => editarPersona('mecanicos', mecanico);
+          
+          const deleteButton = document.createElement("button");
+          deleteButton.className = "btn btn-danger btn-sm";
+          deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Eliminar';
+          deleteButton.onclick = () => eliminarPersona('mecanicos', mecanico.id);
+          
+          actionsDiv.appendChild(editButton);
+          actionsDiv.appendChild(deleteButton);
+          
+          item.appendChild(infoDiv);
+          item.appendChild(actionsDiv);
+          lista.appendChild(item);
+        });
+      } catch (error) {
+        console.error("Error al cargar mecánicos:", error);
+        lista.innerHTML = "<p>Error al cargar los mecánicos. Recarga la página.</p>";
+      }
+    }
+
+    // Cargar supervisores desde Supabase
+    async function cargarSupervisores() {
+      const lista = document.getElementById("lista-supervisores");
+      lista.innerHTML = "<p>Cargando supervisores...</p>";
+
+      try {
+        const { data, error } = await supabase
+          .from("supervisores")
+          .select("*")
+          .order("nombre", { ascending: true });
+
+        if (error) throw error;
+
+        lista.innerHTML = "";
+
+        if (data.length === 0) {
+          lista.innerHTML = "<p>No hay supervisores registrados</p>";
+          return;
+        }
+
+        data.forEach(supervisor => {
+          const item = document.createElement("div");
+          item.className = "person-item";
+          
+          const infoDiv = document.createElement("div");
+          infoDiv.className = "person-info";
+          infoDiv.innerHTML = `<h4>${supervisor.nombre}</h4>`;
+          
+          const actionsDiv = document.createElement("div");
+          actionsDiv.className = "person-actions";
+          
+          const editButton = document.createElement("button");
+          editButton.className = "btn btn-success btn-sm";
+          editButton.innerHTML = '<i class="fas fa-edit"></i> Editar';
+          editButton.onclick = () => editarPersona('supervisores', supervisor);
+          
+          const deleteButton = document.createElement("button");
+          deleteButton.className = "btn btn-danger btn-sm";
+          deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i> Eliminar';
+          deleteButton.onclick = () => eliminarPersona('supervisores', supervisor.id);
+          
+          actionsDiv.appendChild(editButton);
+          actionsDiv.appendChild(deleteButton);
+          
+          item.appendChild(infoDiv);
+          item.appendChild(actionsDiv);
+          lista.appendChild(item);
+        });
+      } catch (error) {
+        console.error("Error al cargar supervisores:", error);
+        lista.innerHTML = "<p>Error al cargar los supervisores. Recarga la página.</p>";
+      }
+    }
+
+    // Editar persona (mecánico o supervisor)
+    async function editarPersona(tabla, persona) {
+      const nuevoNombre = prompt("Editar nombre:", persona.nombre);
+      
+      if (nuevoNombre && nuevoNombre.trim() !== persona.nombre) {
+        try {
+          const { error } = await supabase
+            .from(tabla)
+            .update({ nombre: nuevoNombre.trim() })
+            .eq("id", persona.id);
+
+          if (error) throw error;
+
+          mostrarExito("Registro actualizado correctamente");
+          
+          // Recargar la lista correspondiente
+          if (tabla === 'mecanicos') {
+            cargarMecanicos();
+          } else {
+            cargarSupervisores();
+          }
+        } catch (error) {
+          mostrarError("Error al actualizar: " + error.message);
+        }
+      }
+    }
+
+    // Eliminar persona (mecánico o supervisor)
+    async function eliminarPersona(tabla, id) {
+      if (!confirm("¿Estás seguro de que deseas eliminar este registro?")) {
+        return;
+      }
+
+      try {
+        const { error } = await supabase
+          .from(tabla)
+          .delete()
+          .eq("id", id);
+
+        if (error) throw error;
+
+        mostrarExito("Registro eliminado correctamente");
+        
+        // Recargar la lista correspondiente
+        if (tabla === 'mecanicos') {
+          cargarMecanicos();
+        } else {
+          cargarSupervisores();
+        }
+      } catch (error) {
+        mostrarError("Error al eliminar: " + error.message);
+      }
+    }
+
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarMecanicos();
+      cargarSupervisores();
+    });
+  </script>
+</body>
+</html>

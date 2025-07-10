@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vencimiento Documentación Vehículos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .header-info {
+            text-align: right;
+            margin-bottom: 20px;
+        }
+        .table-container {
+            overflow-x: auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #3f72af;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .vencido {
+            background-color: #ffcccc;
+            color: #d8000c;
+            font-weight: bold;
+        }
+        .por-vencer {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .con-tiempo {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .section-title {
+            background-color: #e9ecef;
+            font-weight: bold;
+        }
+        @media (max-width: 768px) {
+            table {
+                font-size: 12px;
+            }
+            th, td {
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Vencimiento Documentación Vehículos</h1>
+    
+    <div class="header-info">
+        <strong>Fecha:</strong> 07/07/2025
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th rowspan="2">#</th>
+                    <th rowspan="2">CTO</th>
+                    <th rowspan="2">MODELO</th>
+                    <th rowspan="2">PATENTE</th>
+                    
+                    <th colspan="3" class="section-title">PERMISO DE CIRCULACIÓN</th>
+                    <th colspan="3" class="section-title">REVISIÓN TÉCNICA</th>
+                    <th colspan="3" class="section-title">CERTIFICADO OPERATIVIDAD</th>
+                    <th colspan="3" class="section-title">SISTEMA SUPRESIÓN</th>
+                    <th colspan="3" class="section-title">SEGURO TERCEROS</th>
+                    <th colspan="3" class="section-title">DECRETO 80</th>
+                    
+                    <th rowspan="2">FECHA LLEGADA</th>
+                    <th rowspan="2">KILOMETRAJE</th>
+                </tr>
+                <tr>
+                    <!-- Permiso Circulación -->
+                    <th>F. Vencimiento</th>
+                    <th>Días Faltantes</th>
+                    <th>Estatus</th>
+                    
+                    <!-- Revisión Técnica -->
+                    <th>F. Vencimiento</th>
+                    <th>Días Faltantes</th>
+                    <th>Estatus</th>
+                    
+                    <!-- Certificado Operatividad -->
+                    <th>F. Vencimiento</th>
+                    <th>Días Faltantes</th>
+                    <th>Estatus</th>
+                    
+                    <!-- Sistema Supresión -->
+                    <th>F. Vencimiento</th>
+                    <th>Días Faltantes</th>
+                    <th>Estatus</th>
+                    
+                    <!-- Seguro Terceros -->
+                    <th>F. Vencimiento</th>
+                    <th>Días Faltantes</th>
+                    <th>Estatus</th>
+                    
+                    <!-- Decreto 80 -->
+                    <th>F. Vencimiento</th>
+                    <th>Días Faltantes</th>
+                    <th>Estatus</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Ejemplo de fila - puedes generar estas dinámicamente con JavaScript -->
+                <tr>
+                    <td>1</td>
+                    <td>M.E</td>
+                    <td>SPRINTER 516 CDI</td>
+                    <td>LL-KP23</td>
+                    
+                    <!-- Permiso Circulación -->
+                    <td>31/05/2026</td>
+                    <td>328</td>
+                    <td class="con-tiempo">CON TIEMPO</td>
+                    
+                    <!-- Revisión Técnica -->
+                    <td>13/08/2025</td>
+                    <td>37</td>
+                    <td class="con-tiempo">CON TIEMPO</td>
+                    
+                    <!-- Certificado Operatividad -->
+                    <td>19/10/2023</td>
+                    <td>-627</td>
+                    <td class="vencido">VENCIDO</td>
+                    
+                    <!-- Sistema Supresión -->
+                    <td>18/01/2023</td>
+                    <td>-901</td>
+                    <td class="vencido">VENCIDO</td>
+                    
+                    <!-- Seguro Terceros -->
+                    <td>24/08/2023</td>
+                    <td>-683</td>
+                    <td class="vencido">VENCIDO</td>
+                    
+                    <!-- Decreto 80 -->
+                    <td>11/12/2026</td>
+                    <td>522</td>
+                    <td class="con-tiempo">CON TIEMPO</td>
+                    
+                    <td></td>
+                    <td></td>
+                </tr>
+                
+                <!-- Más filas aquí -->
+                <tr>
+                    <td>2</td>
+                    <td>M.E</td>
+                    <td>SPRINTER 516 CDI</td>
+                    <td>LL-KP24</td>
+                    
+                    <!-- Permiso Circulación -->
+                    <td>31/05/2026</td>
+                    <td>328</td>
+                    <td class="con-tiempo">CON TIEMPO</td>
+                    
+                    <!-- Revisión Técnica -->
+                    <td>13/06/2023</td>
+                    <td>-755</td>
+                    <td class="vencido">VENCIDO</td>
+                    
+                    <!-- Certificado Operatividad -->
+                    <td>20/10/2023</td>
+                    <td>-626</td>
+                    <td class="vencido">VENCIDO</td>
+                    
+                    <!-- Sistema Supresión -->
+                    <td>18/01/2023</td>
+                    <td>-901</td>
+                    <td class="vencido">VENCIDO</td>
+                    
+                    <!-- Seguro Terceros -->
+                    <td>24/08/2023</td>
+                    <td>-683</td>
+                    <td class="vencido">VENCIDO</td>
+                    
+                    <!-- Decreto 80 -->
+                    <td>17/12/2023</td>
+                    <td>-568</td>
+                    <td class="vencido">VENCIDO</td>
+                    
+                    <td></td>
+                    <td></td>
+                </tr>
+                
+                <!-- Puedes continuar agregando todas las filas necesarias -->
+                
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        // Aquí puedes agregar JavaScript para:
+        // 1. Cargar los datos dinámicamente desde una API
+        // 2. Aplicar filtros
+        // 3. Ordenar la tabla
+        // 4. Resaltar documentos próximos a vencer
+        
+        // Ejemplo básico para resaltar filas:
+        document.addEventListener('DOMContentLoaded', function() {
+            const rows = document.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                const statusCells = row.querySelectorAll('td[class$="estatus"]');
+                let hasVencido = false;
+                let hasPorVencer = false;
+                
+                statusCells.forEach(cell => {
+                    if (cell.classList.contains('vencido')) {
+                        hasVencido = true;
+                    } else if (cell.classList.contains('por-vencer')) {
+                        hasPorVencer = true;
+                    }
+                });
+                
+                if (hasVencido) {
+                    row.style.borderLeft = '4px solid #dc3545';
+                } else if (hasPorVencer) {
+                    row.style.borderLeft = '4px solid #ffc107';
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Documentación - HGT Tour</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css">
+    <style>
+        :root {
+            --color-primary: #3f72af;
+            --color-secondary: #dbe2ef;
+            --color-text: #112d4e;
+            --color-error: #e74c3c;
+            --color-success: #2ecc71;
+            --color-warning: #f39c12;
+            --border-radius: 8px;
+            --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            color: var(--color-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+        }
+        
+        h1 {
+            color: var(--color-primary);
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 1.8rem;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        h1::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: var(--color-primary);
+        }
+        
+        /* Estilos para las pestañas */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: 600;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active {
+            border-bottom: 3px solid var(--color-primary);
+            color: var(--color-primary);
+        }
+        
+        .tab:hover:not(.active) {
+            background-color: #f1f1f1;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Estilos para los botones */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background-color: var(--color-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2c5282;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+        
+        .btn-danger {
+            background-color: var(--color-error);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+        
+        .btn-warning {
+            background-color: var(--color-warning);
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background-color: #d68910;
+        }
+
+        .btn-back {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .btn-back:hover {
+            background-color: #5a6268;
+        }
+        
+        /* Mensajes de estado */
+        .status-message {
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: var(--border-radius);
+            display: none;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .error {
+            background-color: #f8d7da;
+            color: var(--color-error);
+            border-left: 4px solid var(--color-error);
+        }
+        
+        .success {
+            background-color: #d4edda;
+            color: var(--color-success);
+            border-left: 4px solid var(--color-success);
+        }
+        
+        /* Estilos para la tabla */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 20px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        th, td {
+            padding: 8px 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+        }
+        
+        th {
+            background-color: var(--color-primary);
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        
+        .actions-cell {
+            display: flex;
+            gap: 5px;
+        }
+        
+        /* Estilos para resaltar fechas */
+        .date-cell {
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+        
+        .date-expired {
+            background-color: #ffdddd;
+            color: var(--color-error);
+            font-weight: bold;
+        }
+        
+        .date-warning {
+            background-color: #fff3cd;
+            color: var(--color-warning);
+            font-weight: bold;
+        }
+        
+        .days-remaining {
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+        
+        .days-valid {
+            color: var(--color-success);
+        }
+        
+        .days-pending {
+            color: var(--color-warning);
+        }
+        
+        .days-expired {
+            color: var(--color-error);
+        }
+        
+        /* Estilos para el formulario */
+        .form-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+        }
+        
+        /* Estilos para los filtros */
+        .filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: var(--color-secondary);
+            border-radius: var(--border-radius);
+        }
+        
+        .filter-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .filter-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .filter-control {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+        }
+        
+        /* Estatus de conexión */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            z-index: 1000;
+            display: none;
+        }
+        
+        .connection-good {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .connection-bad {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        /* Calendario */
+        #calendar {
+            margin-top: 20px;
+            max-width: 100%;
+        }
+        
+        .fc-event {
+            cursor: pointer;
+            opacity: 0.9;
+            transition: opacity 0.2s;
+        }
+        
+        .fc-event:hover {
+            opacity: 1;
+        }
+        
+        /* Colores personalizados para eventos del calendario */
+        .fc-event-valid {
+            background-color: #a8df8e; /* Verde suave */
+            border-color: #a8df8e;
+        }
+        
+        .fc-event-pending {
+            background-color: #f3b664; /* Naranja suave */
+            border-color: #f3b664;
+        }
+        
+        .fc-event-expired {
+            background-color: #ff9b9b; /* Rojo suave */
+            border-color: #ff9b9b;
+        }
+        
+        /* Estilo para los días de la semana (dom, lun, mar, mié, jue, vie, sáb) */
+        .fc-col-header-cell-cushion {
+            color: black !important;
+            font-weight: bold;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-bottom: 1px solid #ddd;
+            }
+            
+            .filters {
+                flex-direction: column;
+            }
+            
+            .actions-cell {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="connectionStatus" class="connection-status"></div>
+    
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <button class="btn btn-back" onclick="window.history.back()">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+            <h1 style="margin: 0 auto;">Gestión de Documentación de Máquinas</h1>
+            <div style="width: 100px;"></div> <!-- Espacio para equilibrar -->
+        </div>
+        
+        <div id="error-message" class="status-message error" style="display: none;"></div>
+        <div id="success-message" class="status-message success" style="display: none;"></div>
+        
+        <!-- Pestañas -->
+        <div class="tabs">
+            <div class="tab active" data-tab="listado">Listado</div>
+            <div class="tab" data-tab="ingreso">Ingreso</div>
+            <div class="tab" data-tab="calendario">Calendario</div>
+        </div>
+        
+        <!-- Contenido de pestaña de Listado -->
+        <div id="listado" class="tab-content active">
+            <div class="filters">
+                <div class="filter-group">
+                    <label for="filter-id">ID</label>
+                    <input type="text" id="filter-id" class="filter-control" placeholder="Buscar por ID">
+                </div>
+                <div class="filter-group">
+                    <label for="filter-cto">CTO</label>
+                    <input type="text" id="filter-cto" class="filter-control" placeholder="Buscar por CTO">
+                </div>
+                <div class="filter-group">
+                    <label for="filter-patente">Patente</label>
+                    <select id="filter-patente" class="filter-control">
+                        <option value="">Todas las patentes</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label for="filter-status">Estado Documentos</label>
+                    <select id="filter-status" class="filter-control">
+                        <option value="all">Todos</option>
+                        <option value="valid">Vigentes</option>
+                        <option value="pending">Por vencer</option>
+                        <option value="expired">Vencidos</option>
+                    </select>
+                </div>
+                <div class="filter-group" style="align-self: flex-end;">
+                    <button id="btn-buscar" class="btn btn-primary">
+                        <i class="fas fa-search"></i> Buscar
+                    </button>
+                    <button id="btn-limpiar" class="btn btn-danger">
+                        <i class="fas fa-times"></i> Limpiar
+                    </button>
+                </div>
+            </div>
+            
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>CTO</th>
+                            <th>Modelo</th>
+                            <th>Patente</th>
+                            <th>Permiso Circulación</th>
+                            <th>Seguro</th>
+                            <th>Revisión Técnica</th>
+                            <th>Cert. Operatividad</th>
+                            <th>Sistema Supresión</th>
+                            <th>Seguro Terceros</th>
+                            <th>Decreto 80</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaBody">
+                        <tr>
+                            <td colspan="12">Cargando documentación...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Contenido de pestaña de Ingreso -->
+        <div id="ingreso" class="tab-content">
+            <div class="form-container">
+                <form id="form-documentacion">
+                    <input type="hidden" id="documentacion-id">
+                    
+                    <div class="form-group">
+                        <label for="cto">CTO *</label>
+                        <input type="text" id="cto" class="form-control" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="modelo">Modelo</label>
+                        <input type="text" id="modelo" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="patente">Patente</label>
+                        <input type="text" id="patente" class="form-control" placeholder="Ingrese patente">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="fecha_vencimiento_permiso_circulacion">Vencimiento Permiso Circulación</label>
+                        <input type="date" id="fecha_vencimiento_permiso_circulacion" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="seguro_vencimiento">Vencimiento Seguro</label>
+                        <input type="date" id="seguro_vencimiento" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="revision_tecnica_vencimiento">Vencimiento Revisión Técnica</label>
+                        <input type="date" id="revision_tecnica_vencimiento" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="certificado_operatividad_vencimiento">Vencimiento Certificado Operatividad</label>
+                        <input type="date" id="certificado_operatividad_vencimiento" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="sistema_supresion_vencimiento">Vencimiento Sistema Supresión</label>
+                        <input type="date" id="sistema_supresion_vencimiento" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="seguro_terceros_vencimiento">Vencimiento Seguro Terceros</label>
+                        <input type="date" id="seguro_terceros_vencimiento" class="form-control">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="decreto_80_vencimiento">Vencimiento Decreto 80</label>
+                        <input type="date" id="decreto_80_vencimiento" class="form-control">
+                    </div>
+                    
+                    <div class="form-group" style="margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary" id="btn-guardar">
+                            <i class="fas fa-save"></i> Guardar Documentación
+                        </button>
+                        <button type="button" class="btn btn-danger" id="btn-cancelar" style="display: none;">
+                            <i class="fas fa-times"></i> Cancelar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Contenido de pestaña de Calendario -->
+        <div id="calendario" class="tab-content">
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es-chile.min.js"></script>
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd2pkdmpsZnp0ZXd0bWtyeHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDg0ODEsImV4cCI6MjA2NzIyNDQ4MX0.z0C2PtfkvYwIYfFjnFmdRicn_Jfqyq_SbCHKycHBX-4';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        let modoEdicion = false;
+        let isConnected = false;
+        let patentesDisponibles = [];
+        let calendar;
+        
+        // Función para verificar la conexión con Supabase
+        async function checkSupabaseConnection() {
+            const statusElement = document.getElementById('connectionStatus');
+            
+            try {
+                // Intenta una operación simple para verificar la conexión
+                const { error } = await supabase
+                    .from('documentacion')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) throw error;
+                
+                isConnected = true;
+                statusElement.style.display = 'none';
+                console.log('Conexión con Supabase verificada correctamente');
+            } catch (error) {
+                isConnected = false;
+                statusElement.textContent = 'Error de conexión';
+                statusElement.className = 'connection-status connection-bad';
+                statusElement.style.display = 'block';
+                console.error('Error verificando conexión con Supabase:', error);
+                
+                // Mostrar mensaje de error más detallado
+                mostrarError('Error de conexión con la base de datos. Por favor verifica tu conexión a internet e intenta recargar la página.');
+            }
+        }
+        
+        // Función para mostrar mensajes
+        function mostrarError(mensaje) {
+            const errorElement = document.getElementById('error-message');
+            errorElement.textContent = mensaje;
+            errorElement.style.display = 'block';
+            setTimeout(() => {
+                errorElement.style.display = 'none';
+            }, 10000);
+        }
+        
+        function mostrarExito(mensaje) {
+            const successElement = document.getElementById('success-message');
+            successElement.textContent = mensaje;
+            successElement.style.display = 'block';
+            setTimeout(() => {
+                successElement.style.display = 'none';
+            }, 5000);
+        }
+
+        // Función para cargar patentes desde la tabla documentacion
+        async function cargarPatentes() {
+            try {
+                const { data: documentacion, error } = await supabase
+                    .from('documentacion')
+                    .select('patente')
+                    .order('patente', { ascending: true });
+                
+                if (error) throw error;
+                
+                // Obtener patentes únicas y ordenadas
+                patentesDisponibles = [...new Set(
+                    documentacion
+                        .filter(doc => doc.patente)
+                        .map(doc => doc.patente)
+                )].sort();
+                
+                // Llenar el select de patentes en el filtro
+                const selectFiltro = document.getElementById('filter-patente');
+                selectFiltro.innerHTML = '<option value="">Todas las patentes</option>';
+                
+                patentesDisponibles.forEach(patente => {
+                    const option = document.createElement('option');
+                    option.value = patente;
+                    option.textContent = patente;
+                    selectFiltro.appendChild(option);
+                });
+                
+            } catch (error) {
+                console.error('Error al cargar patentes:', error.message);
+                mostrarError('Error al cargar las patentes disponibles');
+            }
+        }
+
+        // Función para ajustar fecha a zona horaria de Chile (UTC-4/-3) y agregar un día
+        function ajustarFechaChile(dateStr) {
+            if (!dateStr) return null;
+            
+            const date = new Date(dateStr);
+            // Ajustar a UTC-4 (horario estándar de Chile) y agregar un día
+            date.setDate(date.getDate() + 1);
+            
+            return date;
+        }
+
+        // Función para calcular días restantes con zona horaria de Chile
+        function calculateDaysRemaining(dateStr) {
+            if (!dateStr) return { days: null, status: 'empty' };
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // Ajustar la fecha para zona horaria de Chile y agregar un día
+            const date = ajustarFechaChile(dateStr);
+            date.setHours(0, 0, 0, 0);
+            
+            const diffTime = date - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            let status;
+            if (diffDays > 10) {
+                status = 'valid';
+            } else if (diffDays >= 1 && diffDays <= 10) {
+                status = 'pending';
+            } else {
+                status = 'expired';
+            }
+            
+            return { days: diffDays, status: status };
+        }
+
+        // Función para formatear fechas con estado (ajustada para Chile)
+        function formatDateWithStatus(dateStr, daysInfo) {
+            if (!dateStr) return '';
+            
+            // Ajustar la fecha para zona horaria de Chile y agregar un día
+            const date = ajustarFechaChile(dateStr);
+            
+            // Formatear fecha en formato local de Chile
+            const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
+            const formattedDate = date.toLocaleDateString('es-CL', options);
+            
+            let dateClass = '';
+            if (daysInfo.status === 'expired') {
+                dateClass = 'date-expired';
+            } else if (daysInfo.status === 'pending') {
+                dateClass = 'date-warning';
+            }
+            
+            let daysClass = '';
+            if (daysInfo.status === 'valid') {
+                daysClass = 'days-valid';
+            } else if (daysInfo.status === 'pending') {
+                daysClass = 'days-pending';
+            } else {
+                daysClass = 'days-expired';
+            }
+            
+            return `
+                <div class="date-cell ${dateClass}">${formattedDate}</div>
+                <div class="days-remaining ${daysClass}">${daysInfo.days !== null ? daysInfo.days + ' días' : 'N/A'}</div>
+            `;
+        }
+
+        // Función para cargar documentación desde Supabase con filtros
+        async function cargarDocumentacion(filtros = {}) {
+            try {
+                // Verificar conexión antes de continuar
+                if (!isConnected) {
+                    await checkSupabaseConnection();
+                    if (!isConnected) {
+                        throw new Error('No se pudo conectar con la base de datos');
+                    }
+                }
+                
+                let query = supabase
+                    .from('documentacion')
+                    .select('*')
+                    .order('id', { ascending: true }); // Ordenar por ID de menor a mayor
+                
+                // Aplicar filtros
+                if (filtros.id) {
+                    query = query.eq('id', filtros.id);
+                }
+                
+                if (filtros.cto) {
+                    query = query.ilike('cto', `%${filtros.cto}%`);
+                }
+                
+                if (filtros.patente) {
+                    query = query.eq('patente', filtros.patente);
+                }
+                
+                const { data: documentacion, error } = await query;
+                
+                if (error) throw error;
+                
+                // Filtrar por estado si es necesario
+                if (filtros.status && filtros.status !== 'all') {
+                    return documentacion.filter(doc => {
+                        const permisoCirculacion = calculateDaysRemaining(doc.fecha_vencimiento_permiso_circulacion);
+                        const seguro = calculateDaysRemaining(doc.seguro_vencimiento);
+                        const revisionTecnica = calculateDaysRemaining(doc.revision_tecnica_vencimiento);
+                        const certificadoOperatividad = calculateDaysRemaining(doc.certificado_operatividad_vencimiento);
+                        const sistemaSupresion = calculateDaysRemaining(doc.sistema_supresion_vencimiento);
+                        const seguroTerceros = calculateDaysRemaining(doc.seguro_terceros_vencimiento);
+                        const decreto80 = calculateDaysRemaining(doc.decreto_80_vencimiento);
+                        
+                        return [
+                            permisoCirculacion.status, 
+                            seguro.status, 
+                            revisionTecnica.status, 
+                            certificadoOperatividad.status,
+                            sistemaSupresion.status,
+                            seguroTerceros.status,
+                            decreto80.status
+                        ].includes(filtros.status);
+                    });
+                }
+                
+                return documentacion || [];
+            } catch (error) {
+                console.error('Error al cargar documentación:', error.message);
+                mostrarError('Error al cargar documentación: ' + error.message);
+                return [];
+            }
+        }
+
+        // Función para renderizar documentación en la tabla
+        async function renderizarDocumentacion(filtros = {}) {
+            const tablaBody = document.getElementById('tablaBody');
+            tablaBody.innerHTML = '<tr><td colspan="12">Cargando documentación...</td></tr>';
+            
+            try {
+                const documentacion = await cargarDocumentacion(filtros);
+                tablaBody.innerHTML = '';
+                
+                if (documentacion.length === 0) {
+                    tablaBody.innerHTML = '<tr><td colspan="12">No se encontraron registros con los filtros aplicados</td></tr>';
+                    return;
+                }
+                
+                documentacion.forEach(function(doc) {
+                    // Calcular días restantes para cada documento
+                    const permisoCirculacion = calculateDaysRemaining(doc.fecha_vencimiento_permiso_circulacion);
+                    const seguro = calculateDaysRemaining(doc.seguro_vencimiento);
+                    const revisionTecnica = calculateDaysRemaining(doc.revision_tecnica_vencimiento);
+                    const certificadoOperatividad = calculateDaysRemaining(doc.certificado_operatividad_vencimiento);
+                    const sistemaSupresion = calculateDaysRemaining(doc.sistema_supresion_vencimiento);
+                    const seguroTerceros = calculateDaysRemaining(doc.seguro_terceros_vencimiento);
+                    const decreto80 = calculateDaysRemaining(doc.decreto_80_vencimiento);
+                    
+                    const fila = document.createElement('tr');
+                    
+                    fila.innerHTML = `
+                        <td>${doc.id}</td>
+                        <td>${doc.cto}</td>
+                        <td>${doc.modelo || 'N/A'}</td>
+                        <td>${doc.patente || 'N/A'}</td>
+                        <td>${formatDateWithStatus(doc.fecha_vencimiento_permiso_circulacion, permisoCirculacion)}</td>
+                        <td>${formatDateWithStatus(doc.seguro_vencimiento, seguro)}</td>
+                        <td>${formatDateWithStatus(doc.revision_tecnica_vencimiento, revisionTecnica)}</td>
+                        <td>${formatDateWithStatus(doc.certificado_operatividad_vencimiento, certificadoOperatividad)}</td>
+                        <td>${formatDateWithStatus(doc.sistema_supresion_vencimiento, sistemaSupresion)}</td>
+                        <td>${formatDateWithStatus(doc.seguro_terceros_vencimiento, seguroTerceros)}</td>
+                        <td>${formatDateWithStatus(doc.decreto_80_vencimiento, decreto80)}</td>
+                        <td class="actions-cell">
+                            <button class="btn btn-sm btn-warning" onclick="editarDocumentacion('${doc.id}')">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="eliminarDocumentacion('${doc.id}')">
+                                <i class="fas fa-trash-alt"></i> Eliminar
+                            </button>
+                        </td>
+                    `;
+                    tablaBody.appendChild(fila);
+                });
+                
+                // Actualizar la lista de patentes disponibles
+                cargarPatentes();
+                
+                // Actualizar calendario si existe
+                if (calendar) {
+                    actualizarCalendario();
+                }
+            } catch (error) {
+                tablaBody.innerHTML = '<tr><td colspan="12">Error al cargar documentación</td></tr>';
+                mostrarError('Error al cargar documentación: ' + error.message);
+            }
+        }
+
+        // Función para cargar datos de un documento para edición
+        async function editarDocumentacion(id) {
+            try {
+                // Verificar conexión antes de continuar
+                if (!isConnected) {
+                    await checkSupabaseConnection();
+                    if (!isConnected) {
+                        mostrarError('No se pudo conectar con la base de datos');
+                        return;
+                    }
+                }
+                
+                const { data: doc, error } = await supabase
+                    .from('documentacion')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                
+                // Llenar el formulario
+                document.getElementById('documentacion-id').value = doc.id;
+                document.getElementById('cto').value = doc.cto || '';
+                document.getElementById('modelo').value = doc.modelo || '';
+                document.getElementById('patente').value = doc.patente || '';
+                
+                // Función para formatear fecha para input type="date" con zona horaria de Chile
+                function formatDateForInput(dateStr) {
+                    if (!dateStr) return '';
+                    try {
+                        const date = ajustarFechaChile(dateStr);
+                        return date.toISOString().split('T')[0];
+                    } catch (e) {
+                        console.error('Error formateando fecha:', dateStr, e);
+                        return '';
+                    }
+                }
+                
+                document.getElementById('fecha_vencimiento_permiso_circulacion').value = formatDateForInput(doc.fecha_vencimiento_permiso_circulacion);
+                document.getElementById('seguro_vencimiento').value = formatDateForInput(doc.seguro_vencimiento);
+                document.getElementById('revision_tecnica_vencimiento').value = formatDateForInput(doc.revision_tecnica_vencimiento);
+                document.getElementById('certificado_operatividad_vencimiento').value = formatDateForInput(doc.certificado_operatividad_vencimiento);
+                document.getElementById('sistema_supresion_vencimiento').value = formatDateForInput(doc.sistema_supresion_vencimiento);
+                document.getElementById('seguro_terceros_vencimiento').value = formatDateForInput(doc.seguro_terceros_vencimiento);
+                document.getElementById('decreto_80_vencimiento').value = formatDateForInput(doc.decreto_80_vencimiento);
+                
+                // Cambiar a modo edición
+                modoEdicion = true;
+                document.getElementById('btn-cancelar').style.display = 'inline-block';
+                document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-save"></i> Actualizar Documentación';
+                
+                // Cambiar a pestaña de ingreso
+                cambiarPestana('ingreso');
+                
+            } catch (error) {
+                console.error('Error al cargar documentación para edición:', error.message);
+                mostrarError('Error al cargar documentación para edición: ' + error.message);
+            }
+        }
+
+        // Función para guardar o actualizar documentación
+        async function guardarDocumentacion(event) {
+            event.preventDefault();
+            
+            const cto = document.getElementById('cto').value.trim();
+            
+            // Validación básica
+            if (!cto) {
+                mostrarError('El campo CTO es obligatorio');
+                return;
+            }
+            
+            const docData = {
+                cto: cto,
+                modelo: document.getElementById('modelo').value.trim() || null,
+                patente: document.getElementById('patente').value.trim() || null,
+                fecha_vencimiento_permiso_circulacion: document.getElementById('fecha_vencimiento_permiso_circulacion').value || null,
+                seguro_vencimiento: document.getElementById('seguro_vencimiento').value || null,
+                revision_tecnica_vencimiento: document.getElementById('revision_tecnica_vencimiento').value || null,
+                certificado_operatividad_vencimiento: document.getElementById('certificado_operatividad_vencimiento').value || null,
+                sistema_supresion_vencimiento: document.getElementById('sistema_supresion_vencimiento').value || null,
+                seguro_terceros_vencimiento: document.getElementById('seguro_terceros_vencimiento').value || null,
+                decreto_80_vencimiento: document.getElementById('decreto_80_vencimiento').value || null
+            };
+            
+            try {
+                // Verificar conexión antes de continuar
+                if (!isConnected) {
+                    await checkSupabaseConnection();
+                    if (!isConnected) {
+                        mostrarError('No se pudo conectar con la base de datos');
+                        return;
+                    }
+                }
+                
+                if (modoEdicion) {
+                    // Actualizar documentación existente
+                    const id = document.getElementById('documentacion-id').value;
+                    const { error } = await supabase
+                        .from('documentacion')
+                        .update(docData)
+                        .eq('id', id);
+                    
+                    if (error) throw error;
+                    
+                    mostrarExito('Documentación actualizada correctamente');
+                } else {
+                    // Crear nueva documentación
+                    const { error } = await supabase
+                        .from('documentacion')
+                        .insert([docData]);
+                    
+                    if (error) throw error;
+                    
+                    mostrarExito('Documentación creada correctamente');
+                }
+                
+                // Limpiar formulario y recargar listado
+                limpiarFormulario();
+                renderizarDocumentacion();
+                cambiarPestana('listado');
+                
+            } catch (error) {
+                console.error('Error al guardar documentación:', error.message);
+                mostrarError('Error al guardar documentación: ' + error.message);
+            }
+        }
+
+        // Función para eliminar documentación
+        async function eliminarDocumentacion(id) {
+            if (!confirm('¿Está seguro que desea eliminar esta documentación?\nEsta acción no se puede deshacer.')) {
+                return;
+            }
+            
+            try {
+                // Verificar conexión antes de continuar
+                if (!isConnected) {
+                    await checkSupabaseConnection();
+                    if (!isConnected) {
+                        mostrarError('No se pudo conectar con la base de datos');
+                        return;
+                    }
+                }
+                
+                const { error } = await supabase
+                    .from('documentacion')
+                    .delete()
+                    .eq('id', id);
+                
+                if (error) throw error;
+                
+                mostrarExito('Documentación eliminada correctamente');
+                renderizarDocumentacion();
+            } catch (error) {
+                console.error('Error al eliminar documentación:', error.message);
+                mostrarError('Error al eliminar la documentación: ' + error.message);
+            }
+        }
+
+        // Función para limpiar el formulario
+        function limpiarFormulario() {
+            document.getElementById('form-documentacion').reset();
+            document.getElementById('documentacion-id').value = '';
+            modoEdicion = false;
+            document.getElementById('btn-cancelar').style.display = 'none';
+            document.getElementById('btn-guardar').innerHTML = '<i class="fas fa-save"></i> Guardar Documentación';
+        }
+
+        // Función para cambiar entre pestañas
+        function cambiarPestana(pestanaId) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById(pestanaId).classList.add('active');
+            
+            // Actualizar estado de los botones de pestaña
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            document.querySelector(`.tab[data-tab="${pestanaId}"]`).classList.add('active');
+            
+            // Si es la pestaña de calendario, actualizarlo
+            if (pestanaId === 'calendario' && calendar) {
+                calendar.render();
+            }
+        }
+
+        // Función para aplicar filtros
+        function aplicarFiltros() {
+            const filtros = {
+                id: document.getElementById('filter-id').value.trim(),
+                cto: document.getElementById('filter-cto').value.trim(),
+                patente: document.getElementById('filter-patente').value,
+                status: document.getElementById('filter-status').value
+            };
+            
+            renderizarDocumentacion(filtros);
+        }
+
+        // Función para limpiar filtros
+        function limpiarFiltros() {
+            document.getElementById('filter-id').value = '';
+            document.getElementById('filter-cto').value = '';
+            document.getElementById('filter-patente').value = '';
+            document.getElementById('filter-status').value = 'all';
+            renderizarDocumentacion();
+        }
+
+        // Función para inicializar el calendario
+        function inicializarCalendario() {
+            const calendarEl = document.getElementById('calendar');
+            
+            calendar = new FullCalendar.Calendar(calendarEl, {
+                locale: 'es-chile',
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana',
+                    day: 'Día',
+                    list: 'Lista'
+                },
+                monthNames: ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'],
+                monthNamesShort: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+                dayNames: ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'],
+                dayNamesShort: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+                events: async function(fetchInfo, successCallback, failureCallback) {
+                    try {
+                        const { data: documentacion, error } = await supabase
+                            .from('documentacion')
+                            .select('*');
+                        
+                        if (error) throw error;
+                        
+                        const eventos = [];
+                        
+                        documentacion.forEach(doc => {
+                            // Agregar eventos para cada fecha de vencimiento
+                            const camposFecha = [
+                                { campo: 'fecha_vencimiento_permiso_circulacion', titulo: 'Permiso Circulación' },
+                                { campo: 'seguro_vencimiento', titulo: 'Seguro' },
+                                { campo: 'revision_tecnica_vencimiento', titulo: 'Revisión Técnica' },
+                                { campo: 'certificado_operatividad_vencimiento', titulo: 'Cert. Operatividad' },
+                                { campo: 'sistema_supresion_vencimiento', titulo: 'Sistema Supresión' },
+                                { campo: 'seguro_terceros_vencimiento', titulo: 'Seguro Terceros' },
+                                { campo: 'decreto_80_vencimiento', titulo: 'Decreto 80' }
+                            ];
+                            
+                            camposFecha.forEach(({ campo, titulo }) => {
+                                if (doc[campo]) {
+                                    const fecha = ajustarFechaChile(doc[campo]);
+                                    const daysInfo = calculateDaysRemaining(doc[campo]);
+                                    
+                                    let className;
+                                    if (daysInfo.status === 'expired') {
+                                        className = 'fc-event-expired';
+                                    } else if (daysInfo.status === 'pending') {
+                                        className = 'fc-event-pending';
+                                    } else {
+                                        className = 'fc-event-valid';
+                                    }
+                                    
+                                    eventos.push({
+                                        title: `${titulo} - ${doc.cto} ${doc.patente ? '(' + doc.patente + ')' : ''}`,
+                                        start: fecha,
+                                        allDay: true,
+                                        className: className,
+                                        extendedProps: {
+                                            docId: doc.id,
+                                            tipo: titulo,
+                                            estado: daysInfo.status,
+                                            diasRestantes: daysInfo.days
+                                        }
+                                    });
+                                }
+                            });
+                        });
+                        
+                        successCallback(eventos);
+                    } catch (error) {
+                        console.error('Error al cargar eventos para calendario:', error);
+                        failureCallback(error);
+                    }
+                },
+                eventClick: function(info) {
+                    const docId = info.event.extendedProps.docId;
+                    if (docId) {
+                        editarDocumentacion(docId);
+                    }
+                },
+                eventDidMount: function(info) {
+                    // Agregar tooltip con más información
+                    const tooltip = `${info.event.title}\nEstado: ${info.event.extendedProps.estado}\nDías restantes: ${info.event.extendedProps.diasRestantes || 'N/A'}`;
+                    info.el.setAttribute('title', tooltip);
+                }
+            });
+            
+            calendar.render();
+        }
+
+        // Función para actualizar el calendario
+        function actualizarCalendario() {
+            if (calendar) {
+                calendar.refetchEvents();
+            }
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configurar event listeners
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', function() {
+                    cambiarPestana(this.dataset.tab);
+                });
+            });
+            
+            document.getElementById('form-documentacion').addEventListener('submit', guardarDocumentacion);
+            document.getElementById('btn-cancelar').addEventListener('click', function() {
+                limpiarFormulario();
+                cambiarPestana('listado');
+            });
+            
+            document.getElementById('btn-buscar').addEventListener('click', aplicarFiltros);
+            document.getElementById('btn-limpiar').addEventListener('click', limpiarFiltros);
+            
+            // Verificar conexión y cargar datos iniciales
+            checkSupabaseConnection().then(() => {
+                if (isConnected) {
+                    cargarPatentes().then(() => {
+                        renderizarDocumentacion();
+                        inicializarCalendario();
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

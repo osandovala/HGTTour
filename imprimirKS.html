@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impresión Orden de Trabajo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .header-content {
+            display: flex;
+            align-items: center;
+        }
+        .logo {
+            max-height: 80px;
+            margin-right: 20px;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+        }
+        .order-number {
+            font-size: 24px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        .two-columns {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+        .column {
+            width: 48%;
+        }
+        .column div {
+            margin-bottom: 8px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        table, th, td {
+            border: 1px solid #333;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        .signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 80px;
+        }
+        .signature-box {
+            width: 45%;
+            border-top: 1px solid #333;
+            padding-top: 5px;
+            text-align: center;
+            margin-top: 30px;
+        }
+        .status {
+            font-weight: bold;
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            text-align: center;
+        }
+        .no-print {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .empty-space {
+            height: 20px;
+        }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .print-button, .back-button {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 5px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .print-button {
+            background-color: #3f72af;
+            color: white;
+        }
+        .back-button {
+            background-color: #6c757d;
+            color: white;
+        }
+        .print-button:hover {
+            background-color: #2c5282;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .container, .container * {
+                visibility: visible;
+            }
+            .container {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                padding: 0;
+                margin: 0;
+                border: none;
+                box-shadow: none;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .logo {
+                max-height: 70px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="header-content">
+                <img src="img/logo.png" alt="Logo" class="logo" id="logo">
+                <h1 class="title">ORDEN DE TRABAJO</h1>
+                <div class="order-number" id="order-number">#</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">DATOS GENERALES DE LA MÁQUINA / EQUIPO</div>
+            <div class="two-columns">
+                <div class="column">
+                    <div><strong>Máquina-Equipo:</strong> <span id="machine-name"></span></div>
+                    <div><strong>Marca:</strong> <span id="machine-brand"></span></div>
+                </div>
+                <div class="column">
+                    <div><strong>Modelo:</strong> <span id="machine-model"></span></div>
+                    <div><strong>Fabricante:</strong> <span id="machine-manufacturer"></span></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">DATOS DEL MANTENIMIENTO</div>
+            <div class="two-columns">
+                <div class="column">
+                    <div><strong>Fecha y hora inicio:</strong> <span id="start-date"></span></div>
+                    <div><strong>KM:</strong> <span id="km"></span></div>
+                </div>
+                <div class="column">
+                    <div><strong>Mantenimiento #</strong> <span id="maintenance-number"></span></div>
+                    <div><strong>Realizado</strong> <span id="status"></span></div>
+                </div>
+            </div>
+            <div class="two-columns">
+                <div class="column">
+                    <div><strong>Responsable:</strong> <span id="responsible"></span></div>
+                </div>
+                <div class="column">
+                    <div><strong>Tipo:</strong> <span id="maintenance-type"></span></div>
+                </div>
+            </div>
+            <div class="two-columns">
+                <div class="column">
+                    <div><strong>Fecha de cierre:</strong> <span id="close-date"></span></div>
+                </div>
+            </div>
+            
+            <div class="section-title">DESCRIPCION DEL TRABAJO A REALIZAR</div>
+            <div id="work-description" style="min-height: 200px;"></div>
+            
+            <div class="section-title">INSUMOS / MATERIALES</div>
+            <div id="materials-container">
+                <table id="materials-table" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Cantidad</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Los datos se llenarán dinámicamente -->
+                    </tbody>
+                </table>
+                <div id="empty-spaces"></div>
+            </div>
+        </div>
+
+        <div class="signatures">
+            <div class="signature-box">
+                <div>Elaborado por:</div>
+                <div id="created-by"></div>
+            </div>
+            <div class="signature-box">
+                <div>Autorizado por:</div>
+                <div id="approved-by"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="no-print button-container">
+        <button onclick="window.print()" class="print-button">Imprimir</button>
+        <button onclick="window.history.back()" class="back-button">Volver</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNzd2pkdmpsZnp0ZXd0bWtyeHNoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE2NDg0ODEsImV4cCI6MjA2NzIyNDQ4MX0.z0C2PtfkvYwIYfFjnFmdRicn_Jfqyq_SbCHKycHBX-4';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Función para formatear fecha
+        function formatDateTime(dateString) {
+            if (!dateString) return '';
+            try {
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return '';
+                
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+            } catch (e) {
+                console.error('Error formateando fecha:', e);
+                return '';
+            }
+        }
+
+        // Función para obtener el ID de la URL
+        function getOrderId() {
+            const params = new URLSearchParams(window.location.search);
+            return params.get('id');
+        }
+
+        // Función para obtener datos de la máquina por ID
+        async function getMachineDataById(maquinaId) {
+            if (!maquinaId) return null;
+            
+            try {
+                const { data, error } = await supabase
+                    .from('maquinas')
+                    .select('*')
+                    .eq('id', maquinaId)
+                    .single();
+
+                if (error) {
+                    console.error('Error al obtener datos de la máquina:', error);
+                    return null;
+                }
+                return data;
+            } catch (error) {
+                console.error('Excepción al obtener datos de la máquina:', error);
+                return null;
+            }
+        }
+
+        // Función para crear espacios en blanco
+        function createEmptySpaces(count) {
+            const container = document.getElementById('empty-spaces');
+            container.innerHTML = '';
+            for (let i = 0; i < count; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'empty-space';
+                container.appendChild(emptyDiv);
+            }
+        }
+
+        // Cargar datos de la orden de trabajo
+        async function loadOrderData() {
+            const orderId = getOrderId();
+            if (!orderId) {
+                alert('No se proporcionó ID de orden de trabajo');
+                return;
+            }
+
+            try {
+                // Obtener datos del mantenimiento
+                const { data: maintenance, error: maintenanceError } = await supabase
+                    .from('mantenimientos')
+                    .select('*')
+                    .eq('id', orderId)
+                    .single();
+
+                if (maintenanceError) {
+                    console.error('Error al obtener mantenimiento:', maintenanceError);
+                    throw maintenanceError;
+                }
+
+                // Obtener datos de la máquina
+                let machineData = {
+                    nombre: '',
+                    marca: '',
+                    modelo: '',
+                    fabricante: ''
+                };
+
+                if (maintenance.maquina_id) {
+                    const machine = await getMachineDataById(maintenance.maquina_id);
+                    if (machine) {
+                        machineData = {
+                            nombre: machine.nombre || machine.patente || '',
+                            marca: machine.marca || '',
+                            modelo: machine.modelo || '',
+                            fabricante: machine.fabricante || ''
+                        };
+                    }
+                }
+
+                // Llenar los datos en el formulario
+                document.getElementById('order-number').textContent = `#${maintenance.id || ''}`;
+                document.getElementById('machine-name').textContent = machineData.nombre;
+                document.getElementById('machine-brand').textContent = machineData.marca;
+                document.getElementById('machine-model').textContent = machineData.modelo;
+                document.getElementById('machine-manufacturer').textContent = machineData.fabricante;
+                document.getElementById('maintenance-number').textContent = maintenance.id || '';
+                document.getElementById('responsible').textContent = maintenance.responsable || '';
+                document.getElementById('maintenance-type').textContent = maintenance.tipo_mantenimiento || '';
+                document.getElementById('close-date').textContent = maintenance.fecha_cierre ? formatDateTime(maintenance.fecha_cierre).split(' ')[0] : '';
+                document.getElementById('start-date').textContent = maintenance.fecha ? formatDateTime(maintenance.fecha) : '';
+                document.getElementById('km').textContent = maintenance.kilometraje || '';
+                document.getElementById('status').textContent = maintenance.realizado ? 'REALIZADO' : 'NO REALIZADO';
+                document.getElementById('created-by').textContent = maintenance.hecho_por || '';
+                document.getElementById('approved-by').textContent = maintenance.autorizado_por || '';
+                
+                // Descripción del trabajo
+                const workDescription = document.getElementById('work-description');
+                workDescription.textContent = maintenance.descripcion || '';
+
+                // Manejo de materiales
+                const materialsTable = document.getElementById('materials-table');
+                const tbody = materialsTable.querySelector('tbody');
+                tbody.innerHTML = '';
+
+                if (maintenance.insumos && maintenance.insumos.length > 0) {
+                    materialsTable.style.display = '';
+                    maintenance.insumos.forEach(material => {
+                        const row = tbody.insertRow();
+                        const descCell = row.insertCell(0);
+                        const qtyCell = row.insertCell(1);
+                        descCell.textContent = material.descripcion || '';
+                        qtyCell.textContent = material.cantidad || '';
+                    });
+                    createEmptySpaces(0);
+                } else {
+                    materialsTable.style.display = 'none';
+                    createEmptySpaces(3);
+                }
+
+            } catch (error) {
+                console.error('Error al cargar los datos:', error);
+                alert('Error al cargar los datos de la orden de trabajo. Consulte la consola para más detalles.');
+            }
+        }
+
+        // Cargar los datos cuando la página esté lista
+        document.addEventListener('DOMContentLoaded', loadOrderData);
+    </script>
+</body>
+</html>

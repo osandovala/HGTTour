@@ -446,6 +446,16 @@
             margin-top: 15px;
         }
         
+        .chile-time-display {
+            background-color: #e8f4fd;
+            border-left: 4px solid #3f72af;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .tabs {
@@ -644,17 +654,25 @@
                     </div>
                 </div>
                 
+                <div class="chile-time-display">
+                    <i class="fas fa-clock"></i> Hora actual en Chile: 
+                    <span id="chile-time">--:--:--</span>
+                </div>
+                
                 <p>Configuración para enviar automáticamente un reporte diario con los documentos que vencerán en las próximas 4 semanas.</p>
                 
                 <div class="next-run-info">
-                    <i class="fas fa-clock"></i> Próximo envío programado: 
-                    <span id="next-run-time">--:--</span>
+                    <i class="fas fa-bell"></i> Próximo envío programado: 
+                    <span id="next-run-time">Hoy a las 17:10</span>
                 </div>
                 
                 <div class="schedule-config">
                     <div class="form-group">
-                        <label for="report-time">Hora de envío</label>
-                        <input type="time" id="report-time" class="form-control" value="16:30">
+                        <label>Hora de envío (Chile)</label>
+                        <div style="font-size: 1.2rem; padding: 10px; background-color: #e9ecef; border-radius: var(--border-radius); text-align: center;">
+                            17:10
+                        </div>
+                        <small class="text-muted">Hora fija configurada para Chile continental</small>
                     </div>
                     
                     <div class="form-group">
@@ -728,6 +746,8 @@
         let autoReportActive = false;
         let lastReportSent = null;
         let lastRuns = [];
+        const REPORT_HOUR = 17; // 17:10 hora de Chile
+        const REPORT_MINUTE = 10;
         
         // Configuración de EmailJS
         (function() {
@@ -1030,6 +1050,19 @@
                 tablaBody.innerHTML = '<tr><td colspan="12">Error al cargar documentación</td></tr>';
                 mostrarError('Error al cargar documentación: ' + error.message);
             }
+        }
+
+        // Función para obtener la hora actual en Chile continental
+        function getChileTime() {
+            const now = new Date();
+            // Chile continental está en UTC-4 (estándar) o UTC-3 (horario de verano)
+            // Para simplicidad, usamos la hora local del navegador asumiendo que está configurado para Chile
+            return now.toLocaleTimeString('es-CL', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit',
+                timeZone: 'America/Santiago'
+            });
         }
 
         // Función para cargar datos de un documento para edición
@@ -1452,7 +1485,7 @@
                 
                 if (vencimientos.length === 0) {
                     console.log('No hay documentos que vencerán en las próximas 4 semanas');
-                    return;
+                    return true; // Considerar como éxito, no hay nada para enviar
                 }
                 
                 // Construir mensaje HTML
@@ -1585,18 +1618,17 @@
                 clearInterval(autoReportInterval);
             }
             
-            // Obtener la hora configurada
-            const horaConfigurada = document.getElementById('report-time').value;
-            const [horas, minutos] = horaConfigurada.split(':').map(Number);
-            
             // Función para verificar si es la hora de enviar
             function verificarHoraEnvio() {
                 const ahora = new Date();
                 const horasAhora = ahora.getHours();
                 const minutosAhora = ahora.getMinutes();
                 
-                // Verificar si es la hora exacta
-                if (horasAhora === horas && minutosAhora === minutos) {
+                // Actualizar la hora de Chile en la interfaz
+                document.getElementById('chile-time').textContent = getChileTime();
+                
+                // Verificar si es la hora exacta (17:10)
+                if (horasAhora === REPORT_HOUR && minutosAhora === REPORT_MINUTE) {
                     // Verificar que no se haya enviado hoy
                     const hoy = new Date().toDateString();
                     if (!lastReportSent || new Date(lastReportSent).toDateString() !== hoy) {
@@ -1611,17 +1643,31 @@
                     }
                 }
                 
-                // Actualizar la próxima hora de envío
+                // Calcular la próxima hora de envío
                 const nextRun = new Date();
-                nextRun.setHours(horas, minutos, 0, 0);
+                nextRun.setHours(REPORT_HOUR, REPORT_MINUTE, 0, 0);
                 
                 // Si ya pasó la hora de hoy, programar para mañana
                 if (nextRun < ahora) {
                     nextRun.setDate(nextRun.getDate() + 1);
                 }
                 
-                document.getElementById('next-run-time').textContent = 
-                    nextRun.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+                // Formatear la próxima hora de envío
+                const options = { hour: '2-digit', minute: '2-digit' };
+                const nextRunStr = nextRun.toLocaleTimeString('es-CL', options);
+                
+                // Determinar si es hoy o mañana
+                const hoy = new Date();
+                hoy.setHours(0, 0, 0, 0);
+                const mañana = new Date(hoy);
+                mañana.setDate(mañana.getDate() + 1);
+                
+                let diaTexto = "Hoy";
+                if (nextRun.getDate() === mañana.getDate()) {
+                    diaTexto = "Mañana";
+                }
+                
+                document.getElementById('next-run-time').textContent = `${diaTexto} a las ${nextRunStr}`;
             }
             
             // Ejecutar inmediatamente y luego cada minuto

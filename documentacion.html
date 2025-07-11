@@ -15,6 +15,7 @@
             --color-error: #e74c3c;
             --color-success: #2ecc71;
             --color-warning: #f39c12;
+            --color-info: #17a2b8;
             --border-radius: 8px;
             --box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
         }
@@ -56,11 +57,21 @@
             background-color: var(--color-primary);
         }
         
+        h2 {
+            color: var(--color-primary);
+            font-size: 1.4rem;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid var(--color-secondary);
+            padding-bottom: 8px;
+        }
+        
         /* Estilos para las pestañas */
         .tabs {
             display: flex;
             margin-bottom: 20px;
             border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
         }
         
         .tab {
@@ -146,6 +157,24 @@
         .btn-back:hover {
             background-color: #5a6268;
         }
+
+        .btn-email {
+            background-color: #6f42c1;
+            color: white;
+        }
+        
+        .btn-email:hover {
+            background-color: #5a32a3;
+        }
+        
+        .btn-info {
+            background-color: var(--color-info);
+            color: white;
+        }
+        
+        .btn-info:hover {
+            background-color: #138496;
+        }
         
         /* Mensajes de estado */
         .status-message {
@@ -172,6 +201,12 @@
             background-color: #d4edda;
             color: var(--color-success);
             border-left: 4px solid var(--color-success);
+        }
+        
+        .info {
+            background-color: #d1ecf1;
+            color: var(--color-info);
+            border-left: 4px solid var(--color-info);
         }
         
         /* Estilos para la tabla */
@@ -364,6 +399,53 @@
             font-weight: bold;
         }
         
+        /* Configuración de reportes automáticos */
+        .auto-report-card {
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .auto-report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-active {
+            background-color: var(--color-success);
+        }
+        
+        .status-inactive {
+            background-color: var(--color-error);
+        }
+        
+        .next-run-info {
+            background-color: #e8f4fd;
+            border-left: 4px solid var(--color-primary);
+            padding: 12px;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        
+        .schedule-config {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .tabs {
@@ -381,6 +463,10 @@
             .actions-cell {
                 flex-direction: column;
             }
+            
+            .schedule-config {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -393,17 +479,22 @@
                 <i class="fas fa-arrow-left"></i> Volver
             </button>
             <h1 style="margin: 0 auto;">Gestión de Documentación de Máquinas</h1>
-            <div style="width: 100px;"></div> <!-- Espacio para equilibrar -->
+            <button id="btn-enviar-email" class="btn btn-email">
+                <i class="fas fa-envelope"></i> Enviar Reporte
+            </button>
         </div>
         
         <div id="error-message" class="status-message error" style="display: none;"></div>
         <div id="success-message" class="status-message success" style="display: none;"></div>
+        <div id="email-status" class="status-message" style="display: none;"></div>
+        <div id="auto-report-status" class="status-message info" style="display: none;"></div>
         
         <!-- Pestañas -->
         <div class="tabs">
             <div class="tab active" data-tab="listado">Listado</div>
             <div class="tab" data-tab="ingreso">Ingreso</div>
             <div class="tab" data-tab="calendario">Calendario</div>
+            <div class="tab" data-tab="automatico">Reportes Automáticos</div>
         </div>
         
         <!-- Contenido de pestaña de Listado -->
@@ -541,11 +632,88 @@
         <div id="calendario" class="tab-content">
             <div id="calendar"></div>
         </div>
+        
+        <!-- Contenido de pestaña de Reportes Automáticos -->
+        <div id="automatico" class="tab-content">
+            <div class="auto-report-card">
+                <div class="auto-report-header">
+                    <h2>Reporte Automático Diario</h2>
+                    <div>
+                        <span class="status-indicator" id="auto-report-status-indicator"></span>
+                        <span id="auto-report-status-text">Inactivo</span>
+                    </div>
+                </div>
+                
+                <p>Configuración para enviar automáticamente un reporte diario con los documentos que vencerán en las próximas 4 semanas.</p>
+                
+                <div class="next-run-info">
+                    <i class="fas fa-clock"></i> Próximo envío programado: 
+                    <span id="next-run-time">--:--</span>
+                </div>
+                
+                <div class="schedule-config">
+                    <div class="form-group">
+                        <label for="report-time">Hora de envío</label>
+                        <input type="time" id="report-time" class="form-control" value="16:30">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="report-email">Email de destino</label>
+                        <input type="email" id="report-email" class="form-control" value="osandovala@gmail.com">
+                    </div>
+                </div>
+                
+                <div class="form-group" style="margin-top: 20px;">
+                    <button class="btn btn-primary" id="btn-activar-reporte">
+                        <i class="fas fa-power-off"></i> Activar Reporte Automático
+                    </button>
+                    <button class="btn btn-danger" id="btn-desactivar-reporte">
+                        <i class="fas fa-ban"></i> Desactivar
+                    </button>
+                    <button class="btn btn-info" id="btn-test-reporte">
+                        <i class="fas fa-paper-plane"></i> Probar Ahora
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <label>Últimos envíos</label>
+                    <div id="last-runs-container" style="margin-top: 10px;">
+                        <div class="alert alert-secondary">No hay registros de envíos</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="auto-report-card">
+                <h2>Documentos a Incluir en el Reporte</h2>
+                <p>Se incluirán todos los documentos que vencerán en las próximas 4 semanas (28 días).</p>
+                
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patente</th>
+                                <th>Tipo Documento</th>
+                                <th>Fecha Vencimiento</th>
+                                <th>Días Restantes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="next-expirations-body">
+                            <tr>
+                                <td colspan="5">Cargando próximos vencimientos...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/es-chile.min.js"></script>
+    <!-- Incluir EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
     <script>
         // Configuración de Supabase
         const SUPABASE_URL = 'https://cswjdvjlfztewtmkrxsh.supabase.co';
@@ -556,6 +724,15 @@
         let isConnected = false;
         let patentesDisponibles = [];
         let calendar;
+        let autoReportInterval;
+        let autoReportActive = false;
+        let lastReportSent = null;
+        let lastRuns = [];
+        
+        // Configuración de EmailJS
+        (function() {
+            emailjs.init('GTwhaObjJL2yucEbb'); // Usando tu Public Key
+        })();
         
         // Función para verificar la conexión con Supabase
         async function checkSupabaseConnection() {
@@ -601,6 +778,26 @@
             successElement.style.display = 'block';
             setTimeout(() => {
                 successElement.style.display = 'none';
+            }, 5000);
+        }
+
+        function mostrarEstadoEmail(mensaje, esExito = true) {
+            const emailStatus = document.getElementById('email-status');
+            emailStatus.textContent = mensaje;
+            emailStatus.className = esExito ? 'status-message success' : 'status-message error';
+            emailStatus.style.display = 'block';
+            setTimeout(() => {
+                emailStatus.style.display = 'none';
+            }, 5000);
+        }
+        
+        function mostrarEstadoAutoReport(mensaje) {
+            const statusElement = document.getElementById('auto-report-status');
+            statusElement.textContent = mensaje;
+            statusElement.className = 'status-message info';
+            statusElement.style.display = 'block';
+            setTimeout(() => {
+                statusElement.style.display = 'none';
             }, 5000);
         }
 
@@ -1024,6 +1221,11 @@
             if (pestanaId === 'calendario' && calendar) {
                 calendar.render();
             }
+            
+            // Si es la pestaña de reportes automáticos, cargar los próximos vencimientos
+            if (pestanaId === 'automatico') {
+                cargarProximosVencimientos();
+            }
         }
 
         // Función para aplicar filtros
@@ -1151,6 +1353,311 @@
             }
         }
 
+        // Función para obtener vencimientos en las próximas 4 semanas
+        async function obtenerProximosVencimientos4Semanas() {
+            try {
+                const { data: documentacion, error } = await supabase
+                    .from('documentacion')
+                    .select('*');
+                
+                if (error) throw error;
+                
+                const hoy = new Date();
+                const dentroDe4Semanas = new Date();
+                dentroDe4Semanas.setDate(hoy.getDate() + 28); // 4 semanas = 28 días
+                
+                const vencimientos = [];
+                
+                documentacion.forEach(doc => {
+                    const camposFecha = [
+                        { campo: 'fecha_vencimiento_permiso_circulacion', tipo: 'Permiso Circulación' },
+                        { campo: 'seguro_vencimiento', tipo: 'Seguro' },
+                        { campo: 'revision_tecnica_vencimiento', tipo: 'Revisión Técnica' },
+                        { campo: 'certificado_operatividad_vencimiento', tipo: 'Cert. Operatividad' },
+                        { campo: 'sistema_supresion_vencimiento', tipo: 'Sistema Supresión' },
+                        { campo: 'seguro_terceros_vencimiento', tipo: 'Seguro Terceros' },
+                        { campo: 'decreto_80_vencimiento', tipo: 'Decreto 80' }
+                    ];
+                    
+                    camposFecha.forEach(({ campo, tipo }) => {
+                        if (doc[campo]) {
+                            const fechaVencimiento = ajustarFechaChile(doc[campo]);
+                            // Si la fecha de vencimiento está dentro del rango [hoy, dentroDe4Semanas]
+                            if (fechaVencimiento >= hoy && fechaVencimiento <= dentroDe4Semanas) {
+                                const daysInfo = calculateDaysRemaining(doc[campo]);
+                                vencimientos.push({
+                                    id: doc.id,
+                                    patente: doc.patente || 'N/A',
+                                    tipo: tipo,
+                                    fechaVencimiento: doc[campo],
+                                    diasRestantes: daysInfo.days
+                                });
+                            }
+                        }
+                    });
+                });
+                
+                // Ordenar por fecha de vencimiento (más próximo primero)
+                vencimientos.sort((a, b) => {
+                    return new Date(a.fechaVencimiento) - new Date(b.fechaVencimiento);
+                });
+                
+                return vencimientos;
+                
+            } catch (error) {
+                console.error('Error al obtener próximos vencimientos:', error);
+                return [];
+            }
+        }
+
+        // Función para cargar próximos vencimientos en la pestaña de reportes automáticos
+        async function cargarProximosVencimientos() {
+            const tablaBody = document.getElementById('next-expirations-body');
+            tablaBody.innerHTML = '<tr><td colspan="5">Cargando próximos vencimientos...</td></tr>';
+            
+            try {
+                const vencimientos = await obtenerProximosVencimientos4Semanas();
+                tablaBody.innerHTML = '';
+                
+                if (vencimientos.length === 0) {
+                    tablaBody.innerHTML = '<tr><td colspan="5">No hay documentos que vencerán en las próximas 4 semanas</td></tr>';
+                    return;
+                }
+                
+                vencimientos.forEach(vencimiento => {
+                    const fecha = ajustarFechaChile(vencimiento.fechaVencimiento);
+                    const fechaFormateada = fecha.toLocaleDateString('es-CL');
+                    
+                    const fila = document.createElement('tr');
+                    
+                    fila.innerHTML = `
+                        <td>${vencimiento.id}</td>
+                        <td>${vencimiento.patente}</td>
+                        <td>${vencimiento.tipo}</td>
+                        <td>${fechaFormateada}</td>
+                        <td>${vencimiento.diasRestantes} días</td>
+                    `;
+                    tablaBody.appendChild(fila);
+                });
+            } catch (error) {
+                tablaBody.innerHTML = '<tr><td colspan="5">Error al cargar próximos vencimientos</td></tr>';
+            }
+        }
+
+        // Función para enviar reporte automático de vencimientos
+        async function enviarReporteAutomatico() {
+            try {
+                // Obtener los vencimientos
+                const vencimientos = await obtenerProximosVencimientos4Semanas();
+                
+                if (vencimientos.length === 0) {
+                    console.log('No hay documentos que vencerán en las próximas 4 semanas');
+                    return;
+                }
+                
+                // Construir mensaje HTML
+                let mensajeHTML = `
+                    <h2 style="color: #3f72af;">📅 Reporte Automático de Vencimientos - HGT Tour 📅</h2>
+                    <p>Documentos que vencerán en las próximas 4 semanas:</p>
+                    <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                        <thead>
+                            <tr style="background-color: #f5f5f5;">
+                                <th>ID</th>
+                                <th>Patente</th>
+                                <th>Tipo Documento</th>
+                                <th>Fecha Vencimiento</th>
+                                <th>Días Restantes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                `;
+                
+                vencimientos.forEach(vencimiento => {
+                    const fecha = ajustarFechaChile(vencimiento.fechaVencimiento);
+                    const fechaFormateada = fecha.toLocaleDateString('es-CL');
+                    
+                    let statusClass = '';
+                    if (vencimiento.diasRestantes <= 0) {
+                        statusClass = 'color: #e74c3c; font-weight: bold;';
+                    } else if (vencimiento.diasRestantes <= 10) {
+                        statusClass = 'color: #f39c12; font-weight: bold;';
+                    } else {
+                        statusClass = 'color: #2ecc71;';
+                    }
+                    
+                    mensajeHTML += `
+                        <tr>
+                            <td>${vencimiento.id}</td>
+                            <td>${vencimiento.patente}</td>
+                            <td>${vencimiento.tipo}</td>
+                            <td>${fechaFormateada}</td>
+                            <td style="${statusClass}">${vencimiento.diasRestantes} días</td>
+                        </tr>
+                    `;
+                });
+                
+                mensajeHTML += `
+                        </tbody>
+                    </table>
+                    <p style="margin-top: 20px; font-weight: bold;">Por favor tomar las medidas necesarias para su renovación.</p>
+                    <p>Este es un mensaje automático generado el ${new Date().toLocaleDateString('es-CL')} a las ${new Date().toLocaleTimeString('es-CL')}.</p>
+                `;
+                
+                // Datos para el correo electrónico
+                const emailDestino = document.getElementById('report-email').value;
+                const templateParams = {
+                    to_email: emailDestino,
+                    to_name: 'Administrador HGT Tour',
+                    from_name: 'Sistema de Documentación HGT Tour',
+                    subject: `Reporte Automático de Vencimientos - ${new Date().toLocaleDateString('es-CL')}`,
+                    message: mensajeHTML
+                };
+                
+                // Enviar correo electrónico usando EmailJS
+                const response = await emailjs.send('service_bblaxom', 'template_4aprfmr', templateParams);
+                console.log('Reporte automático enviado:', response);
+                
+                // Actualizar registro de envíos
+                const now = new Date();
+                const envioInfo = {
+                    fecha: now.toISOString(),
+                    exitoso: true,
+                    cantidad: vencimientos.length
+                };
+                
+                lastRuns.unshift(envioInfo);
+                if (lastRuns.length > 5) lastRuns.pop();
+                
+                actualizarUltimosEnvios();
+                
+                return true;
+            } catch (error) {
+                console.error('Error al enviar reporte automático:', error);
+                
+                // Registrar envío fallido
+                const now = new Date();
+                const envioInfo = {
+                    fecha: now.toISOString(),
+                    exitoso: false,
+                    error: error.text || error.message
+                };
+                
+                lastRuns.unshift(envioInfo);
+                if (lastRuns.length > 5) lastRuns.pop();
+                
+                actualizarUltimosEnvios();
+                
+                return false;
+            }
+        }
+
+        // Función para actualizar la lista de últimos envíos
+        function actualizarUltimosEnvios() {
+            const container = document.getElementById('last-runs-container');
+            container.innerHTML = '';
+            
+            if (lastRuns.length === 0) {
+                container.innerHTML = '<div class="alert alert-secondary">No hay registros de envíos</div>';
+                return;
+            }
+            
+            lastRuns.forEach(envio => {
+                const fecha = new Date(envio.fecha);
+                const fechaFormateada = fecha.toLocaleString('es-CL');
+                
+                const card = document.createElement('div');
+                card.className = envio.exitoso ? 'alert alert-success' : 'alert alert-danger';
+                card.innerHTML = `
+                    <div><strong>${fechaFormateada}</strong> - 
+                    ${envio.exitoso ? 
+                        `<span class="badge bg-success">Éxito</span> (${envio.cantidad} documentos)` : 
+                        `<span class="badge bg-danger">Error</span> ${envio.error || ''}`}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Función para configurar el reporte automático
+        function configurarReporteAutomatico() {
+            // Detener cualquier intervalo existente
+            if (autoReportInterval) {
+                clearInterval(autoReportInterval);
+            }
+            
+            // Obtener la hora configurada
+            const horaConfigurada = document.getElementById('report-time').value;
+            const [horas, minutos] = horaConfigurada.split(':').map(Number);
+            
+            // Función para verificar si es la hora de enviar
+            function verificarHoraEnvio() {
+                const ahora = new Date();
+                const horasAhora = ahora.getHours();
+                const minutosAhora = ahora.getMinutes();
+                
+                // Verificar si es la hora exacta
+                if (horasAhora === horas && minutosAhora === minutos) {
+                    // Verificar que no se haya enviado hoy
+                    const hoy = new Date().toDateString();
+                    if (!lastReportSent || new Date(lastReportSent).toDateString() !== hoy) {
+                        enviarReporteAutomatico().then(exitoso => {
+                            if (exitoso) {
+                                lastReportSent = new Date();
+                                mostrarEstadoAutoReport('Reporte automático enviado con éxito');
+                            } else {
+                                mostrarEstadoAutoReport('Error al enviar reporte automático');
+                            }
+                        });
+                    }
+                }
+                
+                // Actualizar la próxima hora de envío
+                const nextRun = new Date();
+                nextRun.setHours(horas, minutos, 0, 0);
+                
+                // Si ya pasó la hora de hoy, programar para mañana
+                if (nextRun < ahora) {
+                    nextRun.setDate(nextRun.getDate() + 1);
+                }
+                
+                document.getElementById('next-run-time').textContent = 
+                    nextRun.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+            }
+            
+            // Ejecutar inmediatamente y luego cada minuto
+            verificarHoraEnvio();
+            autoReportInterval = setInterval(verificarHoraEnvio, 60000); // 60 segundos
+        }
+
+        // Función para activar el reporte automático
+        function activarReporteAutomatico() {
+            autoReportActive = true;
+            configurarReporteAutomatico();
+            
+            document.getElementById('auto-report-status-indicator').className = 'status-indicator status-active';
+            document.getElementById('auto-report-status-text').textContent = 'Activo';
+            document.getElementById('auto-report-status-text').style.color = 'var(--color-success)';
+            
+            mostrarEstadoAutoReport('Reporte automático activado');
+        }
+
+        // Función para desactivar el reporte automático
+        function desactivarReporteAutomatico() {
+            autoReportActive = false;
+            
+            if (autoReportInterval) {
+                clearInterval(autoReportInterval);
+                autoReportInterval = null;
+            }
+            
+            document.getElementById('auto-report-status-indicator').className = 'status-indicator status-inactive';
+            document.getElementById('auto-report-status-text').textContent = 'Inactivo';
+            document.getElementById('auto-report-status-text').style.color = 'var(--color-error)';
+            document.getElementById('next-run-time').textContent = '--:--';
+            
+            mostrarEstadoAutoReport('Reporte automático desactivado');
+        }
+
         // Inicialización
         document.addEventListener('DOMContentLoaded', function() {
             // Configurar event listeners
@@ -1169,15 +1676,118 @@
             document.getElementById('btn-buscar').addEventListener('click', aplicarFiltros);
             document.getElementById('btn-limpiar').addEventListener('click', limpiarFiltros);
             
+            // Botón para enviar reporte manualmente
+            document.getElementById('btn-enviar-email').addEventListener('click', function() {
+                enviarReporteAutomatico().then(exitoso => {
+                    if (exitoso) {
+                        mostrarEstadoEmail('Reporte enviado correctamente');
+                    } else {
+                        mostrarEstadoEmail('Error al enviar reporte', false);
+                    }
+                });
+            });
+            
+            // Botones de reportes automáticos
+            document.getElementById('btn-activar-reporte').addEventListener('click', activarReporteAutomatico);
+            document.getElementById('btn-desactivar-reporte').addEventListener('click', desactivarReporteAutomatico);
+            document.getElementById('btn-test-reporte').addEventListener('click', function() {
+                enviarReporteAutomatico().then(exitoso => {
+                    if (exitoso) {
+                        mostrarEstadoAutoReport('Reporte de prueba enviado con éxito');
+                    } else {
+                        mostrarEstadoAutoReport('Error al enviar reporte de prueba');
+                    }
+                });
+            });
+            
             // Verificar conexión y cargar datos iniciales
             checkSupabaseConnection().then(() => {
                 if (isConnected) {
                     cargarPatentes().then(() => {
                         renderizarDocumentacion();
                         inicializarCalendario();
+                        cargarProximosVencimientos();
+                        
+                        // Activar reporte automático por defecto
+                        activarReporteAutomatico();
                     });
                 }
             });
+            
+            // Verificar permisos de usuario
+            const tipoUsuario = sessionStorage.getItem('tipoUsuario');
+            
+            if (tipoUsuario === 'lectura') {
+                // 1. Modificar el título para indicar modo lectura
+                const titulo = document.querySelector('h1');
+                titulo.textContent += ' (Modo Lectura)';
+                
+                // 2. Ocultar pestaña de ingreso (formulario)
+                document.querySelector('.tab[data-tab="ingreso"]').style.display = 'none';
+                
+                // 3. Deshabilitar botones de acción
+                const acciones = [
+                    'Guardar Documentación', 
+                    'Editar', 
+                    'Eliminar',
+                    'Enviar Reporte',
+                    'Activar Reporte Automático',
+                    'Desactivar'
+                ];
+                
+                document.querySelectorAll('.btn').forEach(boton => {
+                    if (acciones.some(accion => boton.textContent.includes(accion))) {
+                        boton.disabled = true;
+                        boton.style.opacity = '0.6';
+                        boton.style.cursor = 'not-allowed';
+                        boton.style.background = '#cccccc';
+                        boton.style.color = '#666666';
+                        boton.title = 'No tienes permisos para esta acción';
+                        boton.onclick = null;
+                    }
+                });
+
+                // 4. Deshabilitar campos de filtro
+                document.querySelectorAll('.filter-control').forEach(input => {
+                    input.disabled = true;
+                    input.style.backgroundColor = '#f5f5f5';
+                });
+
+                // 5. Mostrar mensaje informativo
+                const mensajeInfo = document.createElement('div');
+                mensajeInfo.className = 'status-message';
+                mensajeInfo.style.backgroundColor = '#e3f2fd';
+                mensajeInfo.style.color = '#1976d2';
+                mensajeInfo.style.borderLeft = '4px solid #1976d2';
+                mensajeInfo.textContent = 'Estás en modo de solo lectura. No puedes realizar modificaciones.';
+                document.querySelector('.container').insertBefore(mensajeInfo, document.querySelector('.tabs'));
+            }
+        });
+
+        // Sobrescribir funciones críticas para usuarios de solo lectura
+        const funcionesProtegidas = [
+            'guardarDocumentacion',
+            'editarDocumentacion', 
+            'eliminarDocumentacion',
+            'aplicarFiltros',
+            'limpiarFiltros',
+            'enviarReporteAutomatico',
+            'activarReporteAutomatico',
+            'desactivarReporteAutomatico'
+        ];
+
+        funcionesProtegidas.forEach(funcion => {
+            const original = window[funcion];
+            if (original) {
+                window[funcion] = async function(...args) {
+                    const tipoUsuario = sessionStorage.getItem('tipoUsuario');
+                    if (tipoUsuario === 'lectura') {
+                        alert(`No tienes permisos para ${funcion.replace(/([A-Z])/g, ' $1').toLowerCase()}. Modo de solo lectura.`);
+                        return;
+                    }
+                    return original.apply(this, args);
+                };
+            }
         });
     </script>
 </body>

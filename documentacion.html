@@ -456,6 +456,25 @@
             text-align: center;
         }
         
+        .time-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .time-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            text-align: center;
+        }
+        
+        .time-input-label {
+            min-width: 80px;
+        }
+        
         /* Responsive */
         @media (max-width: 768px) {
             .tabs {
@@ -476,6 +495,15 @@
             
             .schedule-config {
                 grid-template-columns: 1fr;
+            }
+            
+            .time-input-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .time-input-label {
+                min-width: auto;
             }
         }
     </style>
@@ -663,16 +691,17 @@
                 
                 <div class="next-run-info">
                     <i class="fas fa-bell"></i> Próximo envío programado: 
-                    <span id="next-run-time">Hoy a las 17:10</span>
+                    <span id="next-run-time">--:--</span>
                 </div>
                 
                 <div class="schedule-config">
                     <div class="form-group">
                         <label>Hora de envío (Chile)</label>
-                        <div style="font-size: 1.2rem; padding: 10px; background-color: #e9ecef; border-radius: var(--border-radius); text-align: center;">
-                            17:10
+                        <div class="time-input-group">
+                            <span class="time-input-label">Hora:</span>
+                            <input type="time" id="report-time" class="form-control" value="17:10">
                         </div>
-                        <small class="text-muted">Hora fija configurada para Chile continental</small>
+                        <small class="text-muted">Seleccione la hora deseada para el envío diario</small>
                     </div>
                     
                     <div class="form-group">
@@ -746,8 +775,8 @@
         let autoReportActive = false;
         let lastReportSent = null;
         let lastRuns = [];
-        const REPORT_HOUR = 17; // 17:10 hora de Chile
-        const REPORT_MINUTE = 10;
+        let reportHour = 17; // Hora por defecto
+        let reportMinute = 10; // Minuto por defecto
         
         // Configuración de EmailJS
         (function() {
@@ -1618,6 +1647,17 @@
                 clearInterval(autoReportInterval);
             }
             
+            // Obtener la hora seleccionada por el usuario
+            const timeInput = document.getElementById('report-time').value;
+            if (timeInput) {
+                const [hourStr, minuteStr] = timeInput.split(':');
+                reportHour = parseInt(hourStr, 10);
+                reportMinute = parseInt(minuteStr, 10);
+                
+                // Guardar en localStorage
+                localStorage.setItem('reportTime', timeInput);
+            }
+            
             // Función para verificar si es la hora de enviar
             function verificarHoraEnvio() {
                 const ahora = new Date();
@@ -1627,8 +1667,8 @@
                 // Actualizar la hora de Chile en la interfaz
                 document.getElementById('chile-time').textContent = getChileTime();
                 
-                // Verificar si es la hora exacta (17:10)
-                if (horasAhora === REPORT_HOUR && minutosAhora === REPORT_MINUTE) {
+                // Verificar si es la hora exacta configurada
+                if (horasAhora === reportHour && minutosAhora === reportMinute) {
                     // Verificar que no se haya enviado hoy
                     const hoy = new Date().toDateString();
                     if (!lastReportSent || new Date(lastReportSent).toDateString() !== hoy) {
@@ -1645,7 +1685,7 @@
                 
                 // Calcular la próxima hora de envío
                 const nextRun = new Date();
-                nextRun.setHours(REPORT_HOUR, REPORT_MINUTE, 0, 0);
+                nextRun.setHours(reportHour, reportMinute, 0, 0);
                 
                 // Si ya pasó la hora de hoy, programar para mañana
                 if (nextRun < ahora) {
@@ -1745,6 +1785,15 @@
                     }
                 });
             });
+            
+            // Cargar la hora guardada si existe
+            const savedTime = localStorage.getItem('reportTime');
+            if (savedTime) {
+                document.getElementById('report-time').value = savedTime;
+                const [hourStr, minuteStr] = savedTime.split(':');
+                reportHour = parseInt(hourStr, 10);
+                reportMinute = parseInt(minuteStr, 10);
+            }
             
             // Verificar conexión y cargar datos iniciales
             checkSupabaseConnection().then(() => {

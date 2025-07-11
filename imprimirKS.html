@@ -131,6 +131,16 @@
         .back-button:hover {
             background-color: #5a6268;
         }
+        .lined-area {
+            min-height: 200px;
+            margin-top: 10px;
+            position: relative;
+        }
+        .lined-area .line {
+            border-bottom: 1px solid #ccc;
+            margin-bottom: 10px; /* Aproximadamente 0.5 cm */
+            height: 20px;
+        }
         @media print {
             body * {
                 visibility: hidden;
@@ -153,6 +163,11 @@
             }
             .logo {
                 max-height: 70px;
+            }
+            .lined-area .line {
+                border-bottom: 1px solid #ccc;
+                margin-bottom: 0.5cm; /* 0.5 cm exactos para impresión */
+                height: auto;
             }
         }
     </style>
@@ -208,7 +223,9 @@
             </div>
             
             <div class="section-title">DESCRIPCION DEL TRABAJO A REALIZAR</div>
-            <div id="work-description" style="min-height: 200px;"></div>
+            <div id="work-description" class="lined-area">
+                <!-- Las líneas se agregarán dinámicamente -->
+            </div>
             
             <div class="section-title">INSUMOS / MATERIALES</div>
             <div id="materials-container">
@@ -223,7 +240,9 @@
                         <!-- Los datos se llenarán dinámicamente -->
                     </tbody>
                 </table>
-                <div id="empty-spaces"></div>
+                <div id="materials-lines" class="lined-area">
+                    <!-- Las líneas se agregarán dinámicamente -->
+                </div>
             </div>
         </div>
 
@@ -298,14 +317,31 @@
             }
         }
 
-        // Función para crear espacios en blanco
-        function createEmptySpaces(count) {
-            const container = document.getElementById('empty-spaces');
+        // Función para crear líneas en un área
+        function createLines(containerId, lineCount) {
+            const container = document.getElementById(containerId);
             container.innerHTML = '';
-            for (let i = 0; i < count; i++) {
-                const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'empty-space';
-                container.appendChild(emptyDiv);
+            
+            // Agregar el contenido existente si lo hay
+            if (containerId === 'work-description' && container.textContent.trim() !== '') {
+                const contentDiv = document.createElement('div');
+                contentDiv.textContent = container.textContent;
+                container.textContent = '';
+                container.appendChild(contentDiv);
+                
+                // Agregar espacio después del contenido
+                const spacer = document.createElement('div');
+                spacer.className = 'line';
+                spacer.style.border = 'none';
+                spacer.style.height = '20px';
+                container.appendChild(spacer);
+            }
+            
+            // Crear las líneas
+            for (let i = 0; i < lineCount; i++) {
+                const line = document.createElement('div');
+                line.className = 'line';
+                container.appendChild(line);
             }
         }
 
@@ -369,6 +405,9 @@
                 // Descripción del trabajo
                 const workDescription = document.getElementById('work-description');
                 workDescription.textContent = maintenance.descripcion || '';
+                
+                // Crear líneas para la descripción del trabajo (10 líneas)
+                createLines('work-description', 10);
 
                 // Manejo de materiales
                 const materialsTable = document.getElementById('materials-table');
@@ -384,10 +423,12 @@
                         descCell.textContent = material.descripcion || '';
                         qtyCell.textContent = material.cantidad || '';
                     });
-                    createEmptySpaces(0);
+                    // Crear líneas para materiales (5 líneas)
+                    createLines('materials-lines', 5);
                 } else {
                     materialsTable.style.display = 'none';
-                    createEmptySpaces(3);
+                    // Crear líneas para materiales (8 líneas)
+                    createLines('materials-lines', 8);
                 }
 
             } catch (error) {
